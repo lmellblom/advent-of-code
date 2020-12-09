@@ -18,7 +18,16 @@ namespace adventOfCode2020
                 new December6(),
                 new December7(),
                 new December8(),
-                new December9()
+                new December9(),
+                new December10(),
+                new December11(),
+                new December12(),
+                new December13(),
+                new December14(),
+                new December15(),
+                new December16(),
+                new December17(),
+                new December18()
             };
 
             DateTime thisDay = DateTime.Today;
