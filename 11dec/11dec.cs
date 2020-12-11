@@ -44,7 +44,6 @@ namespace adventOfCode2020
         private List<string> GetSeatLayout(List<string> input)
         {
             // shuffle the layout, go trough all and change input into a new array?
-            // string[] newLayout = new string[input.Count()];
             List<string> newLayout = new List<string>();
 
             for (int rowIndex = 0; rowIndex < input.Count(); rowIndex++)
@@ -95,10 +94,6 @@ namespace adventOfCode2020
         {
             string seats = "";
 
-            // rowIndex = -1  
-            // rowIndex = same
-            // rowIndex = +1
-
             List<int> rowRange = Enumerable.Range(-1, 3).Select(nr => nr + rowIndex).ToList();
             List<int> colRange = Enumerable.Range(-1, 3).Select(nr => nr + colIndex).ToList();
 
@@ -125,37 +120,6 @@ namespace adventOfCode2020
             }
 
             return seats;
-        }
-
-        private int ShuffleSeatLayout(string[] input)
-        {
-            {
-                int right = 1; int down = 1;
-
-                int rowIndex = 0; // | - number of list
-                int colIndex = 0; // - check letter
-
-                int foundTrees = 0;
-                var isTree = '#';
-
-                // until the end
-                rowIndex += down;
-                colIndex += right;
-                while (rowIndex < input.Count())
-                {
-                    var row = input[rowIndex]; // all letters
-                    if (colIndex >= row.Count())
-                    {
-                        colIndex -= row.Count();
-                    }
-                    var letter = row[colIndex];
-                    foundTrees += (letter == isTree) ? 1 : 0;
-                    rowIndex += down;
-                    colIndex += right;
-                }
-
-                return foundTrees;
-            }
         }
 
         public override string First()
