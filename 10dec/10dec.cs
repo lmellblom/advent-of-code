@@ -35,7 +35,7 @@ namespace adventOfCode2020
 
             public ChainOfAdapters(List<int> adapters)
             {
-                adapters.Add(0);                    // charingOutlet
+                adapters.Add(0);                    // charing outlet
                 adapters.Add(adapters.Max() + 3);   // device joltage
                 adapters.Sort();
 
@@ -46,6 +46,9 @@ namespace adventOfCode2020
 
                 Difference1Jolt = 0;
                 Difference3Jolt = 0;
+
+                CACHE = new Dictionary<int, long>();
+                TEST = new Dictionary<string, long>();
             }
 
             public void BuildChainDistribution_v2()
@@ -55,8 +58,6 @@ namespace adventOfCode2020
                 {
                     difference.Add(Joltages[i] - Joltages[i - 1]);
                 }
-
-                var s = difference.Sum();
 
                 Difference1Jolt = difference.Where(item => item == 1).Count();
                 Difference3Jolt = difference.Where(item => item == 3).Count();
@@ -80,11 +81,76 @@ namespace adventOfCode2020
                 }
             }
 
-            public List<List<int>> DistinctChains(List<int> difference)
+            public Dictionary<string, long> TEST { get; set; }
+            public Dictionary<int, long> CACHE { get; set; }
+            public long DistinctChains(List<int> joltages, int currentIndex)
             {
-                var newList2 = new List<List<int>>();
+                if (CACHE.ContainsKey(currentIndex))
+                {
+                    return CACHE[currentIndex];
+                }
 
-                var newList = new List<int>();
+                // leaf found, add one
+                if (currentIndex == joltages.Count() - 1)
+                {
+                    CACHE.Add(currentIndex, 1);
+                    return 1;
+                }
+
+                long sum = 0;
+                for (int i = currentIndex + 1; i < joltages.Count(); i++)
+                {
+
+                    if (joltages[i] <= joltages[currentIndex] + 3)
+                    {
+                        sum += DistinctChains(joltages, i);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                CACHE.Add(currentIndex, sum);
+                return sum;
+            }
+
+
+            public long DistinctChains2(string difference)
+            {
+                string diffKey = difference;
+                if (TEST.ContainsKey(diffKey))
+                {
+                    Console.WriteLine(diffKey);
+                    return TEST[diffKey];
+                }
+
+                long sum = 0;
+                string newDifference = "";
+                for (int i = 0; i < difference.Count() - 1; i++)
+                {
+                    int current = Int32.Parse(difference[i].ToString());
+                    int next = Int32.Parse(difference[i + 1].ToString());
+                    if (current + next <= 3)
+                    {
+                        string newNr = (current + next).ToString();
+                        string inputToNext = newDifference + newNr + difference.Substring(i + 2);
+                        var newSum = DistinctChains2(inputToNext);
+                        sum += (newSum);
+                        continue;
+                    }
+                    newDifference += difference[i];
+                }
+
+                // leaf found
+                sum += 1;
+                TEST.Add(diffKey, sum);
+                return sum; // done
+            }
+            public long DistinctChainsOld(List<int> difference)
+            {
+                long sum = 0;
+                var newDifferenceList = new List<int>();
                 for (int i = 0; i < difference.Count() - 1; i++)
                 {
                     var current = difference[i];
@@ -92,22 +158,28 @@ namespace adventOfCode2020
                     if (current + next <= 3)
                     {
                         var list2 = new List<int>() { };
-                        list2.AddRange(newList);
+                        list2.AddRange(newDifferenceList);
                         list2.Add(current + next);
                         list2.AddRange(difference.Skip(i + 2));
-                        var newLists = DistinctChains(list2);
-                        newList2.AddRange(newLists);
+                        var newSum = DistinctChainsOld(list2);
+                        sum += (newSum);
                         continue;
                     }
 
-                    newList.Add(difference[i]);
+                    newDifferenceList.Add(difference[i]);
                 }
 
-                newList2.Add(newList);
-
-                return newList2; // done
+                sum += 1;
+                return sum; // done
             }
-            public int AllDistinctChainDistributions()
+
+            public long AllDistinctChainDistributions()
+            {
+                var tests = DistinctChains(Joltages, 0);
+                return tests;
+            }
+
+            public long AllDistinctChainDistributionOld()
             {
                 List<int> difference = new List<int>();
                 for (int i = 0; i < Joltages.Count - 1; i++)
@@ -116,29 +188,8 @@ namespace adventOfCode2020
                     difference.Add(diff);
                 }
 
-                var tests = DistinctChains(difference);
-
-                // List<List<int>> chain = new List<List<int>>();
-
-                // int sum = 0;
-                // for (int i = 0; i < Adapters.Count; i++)
-                // {
-                //     var current = Adapters[i];
-                //     List<int> adaptersThatCanConnect = current.AdaptersThanCanConnect();
-                //     List<JoltageAdapter> adaptersFound = Adapters.Where(adapter => adaptersThatCanConnect.Contains(adapter.RatedOutputJoltage)).ToList();
-                //     sum += adaptersFound.Count();
-                //     // how many connection can we go?
-
-                //     // for each possible connection, add a new with all possible connections so far?
-                //     // possible connections, +1, +2, +3
-                // }
-
-                // while there are any adjecent 1 or 2s togehter, sum and make a new sequence
-
-                // all ones and twos together,
-
-
-                return tests.Count();
+                var tests = DistinctChainsOld(difference);
+                return tests;
             }
 
             private void AddDifference(int diffJoltage)
@@ -221,7 +272,7 @@ namespace adventOfCode2020
 
             // all adapters in my bag
             var adapters = new ChainOfAdapters(input1);
-            int result1 = adapters.AllDistinctChainDistributions();
+            var result1 = adapters.AllDistinctChainDistributions();
             bool firstAdaptersResult = result1 == 8;
 
             string filename = GetTestFilename();
@@ -229,7 +280,7 @@ namespace adventOfCode2020
 
             // all adapters in my bag
             var adapters2 = new ChainOfAdapters(input2);
-            int result2 = adapters2.AllDistinctChainDistributions();
+            var result2 = adapters2.AllDistinctChainDistributions();
             bool secondAdaptersResult = result2 == 19208;
 
             bool testSucceeded = firstAdaptersResult && secondAdaptersResult;
@@ -242,8 +293,8 @@ namespace adventOfCode2020
             List<int> input = System.IO.File.ReadAllLines(filename).Select(int.Parse).ToList();
             // all adapters in my bag
             var adapters = new ChainOfAdapters(input);
-            // int result = adapters.AllDistinctChainDistributions();
-            return "not working"; // result.ToString();
+            var result = adapters.AllDistinctChainDistributions();
+            return result.ToString();
         }
     }
 }
