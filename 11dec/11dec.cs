@@ -10,6 +10,9 @@ namespace adventOfCode2020
         {
         }
 
+        // TODO: use vectors instead?
+        // this takes to long..
+
         public static char SEAT_IS_EMPTY = 'L';
         public static char SEAT_IS_OCCUPIED = '#';
         public static char FLOOR = '.';
