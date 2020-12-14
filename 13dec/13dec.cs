@@ -35,6 +35,8 @@ namespace adventOfCode2020
                 Id = id;
                 Offset = offset;
             }
+
+            // Id * i + (Id - Offset); // how to calculate an timestamp departure
         }
 
         private List<Bus> GetBuses(List<string> input)
@@ -63,31 +65,29 @@ namespace adventOfCode2020
             return output;
         }
 
-        public long GetTimestamp(List<Departure> departures)
+        // Chinese remainder theorem(https://en.wikipedia.org/wiki/Chinese_remainder_theorem)
+        public long GetTimestamp(List<Departure> input)
         {
-            var bus = departures[0];
-            long time = 0L;
-            long inc = bus.Id;
+            input = input.OrderBy(a => a.Offset).ToList();
 
-            // Chinese remainder theorem(https://en.wikipedia.org/wiki/Chinese_remainder_theorem)
-            for (var i = 1; i < departures.Count(); i++)
+            long n = 0L; // the value to look for
+            long inc = input.First().Id;
+
+            IEnumerable<Departure> departures = input.Skip(1);
+            foreach (var bus in departures)
             {
-                Console.WriteLine(i);
-                bus = departures[i];
-                long newTime = bus.Id;
                 while (true)
                 {
-                    time += inc;
-                    if ((time + bus.Offset) % newTime == 0)
+                    n += inc;
+                    if ((n + bus.Offset) % bus.Id == 0)
                     {
-                        inc *= newTime;
-                        Console.WriteLine("inc: " + inc);
+                        inc *= bus.Id;
                         break;
                     }
                 }
             }
 
-            return time;
+            return n;
         }
 
         public Bus GetEarliestBus(List<string> input)
@@ -137,3 +137,5 @@ namespace adventOfCode2020
         }
     }
 }
+
+
