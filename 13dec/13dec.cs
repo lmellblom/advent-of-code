@@ -72,21 +72,26 @@ namespace adventOfCode2020
 
             long n = 0L; // the value to look for
             long inc = input.First().Id;
+            Console.WriteLine($"Startinc: {inc}");
 
             IEnumerable<Departure> departures = input.Skip(1);
             foreach (var bus in departures)
             {
+                Console.WriteLine($"Modolus: {bus.Id}, Offset {bus.Offset}");
                 while (true)
                 {
+                    Console.WriteLine($"{n} += {inc}");
                     n += inc;
+                    Console.WriteLine($"{n} + {bus.Offset} % {bus.Id} == 0");
                     if ((n + bus.Offset) % bus.Id == 0)
                     {
+                        Console.WriteLine("---  FOUND ---");
+                        Console.WriteLine($"{inc} *= {bus.Id}");
                         inc *= bus.Id;
                         break;
                     }
                 }
             }
-
             return n;
         }
 
@@ -115,7 +120,6 @@ namespace adventOfCode2020
             var result = firstBus.GetResult();
             return result.ToString();
         }
-
 
         public override bool Test2()
         {
