@@ -10,6 +10,8 @@ namespace adventOfCode2020
         {
         }
 
+        public bool WriteToConsole = false;
+
         public class Bus
         {
             private int Id;
@@ -72,21 +74,21 @@ namespace adventOfCode2020
 
             long n = 0L; // the value to look for
             long inc = input.First().Id;
-            Console.WriteLine($"Startinc: {inc}");
+            if (WriteToConsole) Console.WriteLine($"Startinc: {inc}");
 
             IEnumerable<Departure> departures = input.Skip(1);
             foreach (var bus in departures)
             {
-                Console.WriteLine($"Modolus: {bus.Id}, Offset {bus.Offset}");
+                if (WriteToConsole) Console.WriteLine($"Modolus: {bus.Id}, Offset {bus.Offset}");
                 while (true)
                 {
-                    Console.WriteLine($"{n} += {inc}");
+                    if (WriteToConsole) Console.WriteLine($"{n} += {inc}");
                     n += inc;
-                    Console.WriteLine($"{n} + {bus.Offset} % {bus.Id} == 0");
+                    if (WriteToConsole) Console.WriteLine($"{n} + {bus.Offset} % {bus.Id} == 0");
                     if ((n + bus.Offset) % bus.Id == 0)
                     {
-                        Console.WriteLine("---  FOUND ---");
-                        Console.WriteLine($"{inc} *= {bus.Id}");
+                        if (WriteToConsole) Console.WriteLine("---  FOUND ---");
+                        if (WriteToConsole) Console.WriteLine($"{inc} *= {bus.Id}");
                         inc *= bus.Id;
                         break;
                     }
@@ -106,9 +108,11 @@ namespace adventOfCode2020
         public override bool Test()
         {
             string filename = GetTestFilename();
+            WriteToConsole = true;
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
             Bus firstBus = GetEarliestBus(input);
             bool testSucceeded = firstBus.GetResult() == 295;
+            WriteToConsole = false;
             return testSucceeded;
         }
 

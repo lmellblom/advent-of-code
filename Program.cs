@@ -8,7 +8,7 @@ namespace adventOfCode2020
     {
         static void Main(string[] args)
         {
-            var puzzles = new List<AdventOfCode>() 
+            var puzzles = new List<AdventOfCode>()
             {
                 new December1(),
                 new December2(),
@@ -27,20 +27,39 @@ namespace adventOfCode2020
                 new December15(),
                 new December16(),
                 new December17(),
-                new December18()
+                new December18(),
+                new December19(),
+                new December20(),
+                new December21(),
+                new December22(),
+                new December23(),
+                new December24(),
+                new December25()
+                
             };
 
             DateTime thisDay = DateTime.Today;
             int day = thisDay.Day;
 
-            // previous days, only print results
-            for (int i = 0; i < day - 1; i++)
+            // day can not be more than 25, if so then everyhting is finished!
+            if (day > 25 && thisDay.Month != 12)
             {
-                puzzles[i].RunOnlyResult();
+                foreach (var puzzle in puzzles)
+                {
+                    puzzle.RunOnlyResult();
+                }
             }
+            else
+            {
+                // previous days, only print results
+                for (int i = 0; i < day - 1; i++)
+                {
+                    puzzles[i].RunOnlyResult();
+                }
 
-            // run this day
-            puzzles[day - 1].Run();
+                // run this day
+                puzzles[day - 1].Run();
+            }
         }
     }
 }
