@@ -25,9 +25,6 @@ namespace adventOfCode2020
         {
             public string Mask { get; set; }
             public List<(int index, ulong bitValue)> MaskModified { get; set; }
-
-            public List<char[]> AllMasks { get; set; }
-
             public List<InstructionValue> Instructions { get; set; }
 
             public Instruction(string mask)
