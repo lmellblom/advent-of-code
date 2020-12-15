@@ -12,9 +12,9 @@ namespace adventOfCode2020
 
         public class InstructionValue
         {
-            public string MemoryIndex { get; set; }
+            public ulong MemoryIndex { get; set; }
             public ulong Value { get; set; }
-            public InstructionValue(string index, ulong value)
+            public InstructionValue(ulong index, ulong value)
             {
                 MemoryIndex = index;
                 Value = value;
@@ -24,6 +24,9 @@ namespace adventOfCode2020
         public class Instruction
         {
             public string Mask { get; set; }
+            public List<(int index, ulong bitValue)> MaskModified { get; set; }
+
+            public List<char[]> AllMasks { get; set; }
 
             public List<InstructionValue> Instructions { get; set; }
 
@@ -31,23 +34,38 @@ namespace adventOfCode2020
             {
                 Mask = mask;
                 Instructions = new List<InstructionValue>();
+                ConstructMask();
             }
 
-            public void AddInstruction(string index, ulong value)
+            public void AddInstruction(ulong index, ulong value)
             {
                 Instructions.Add(new InstructionValue(index, value));
             }
 
+            private void ConstructMask()
+            {
+                int index = 0;
+                MaskModified = new List<(int, ulong)>();
+                foreach (var maskValue in Mask.Reverse())
+                {
+                    if (maskValue != 'X')
+                    {
+                        var bitValue = ulong.Parse(maskValue.ToString());
+                        MaskModified.Add((index, bitValue));
+                    }
+                    index++;
+                }
+            }
         }
 
         public class Computer
         {
             public List<Instruction> Instructions { get; set; }
-            public Dictionary<string, ulong> Memory { get; set; }
+            public Dictionary<ulong, ulong> Memory { get; set; }
 
             public Computer(List<string> input)
             {
-                Memory = new Dictionary<string, ulong>();
+                Memory = new Dictionary<ulong, ulong>();
                 Instructions = new List<Instruction>();
 
                 foreach (var row in input)
@@ -61,7 +79,7 @@ namespace adventOfCode2020
                     {
                         // add all fields to the latest known instruction
                         var values = row.Split("=");
-                        var index = values[0].Trim().Replace("mem[", "").Replace("]", "");
+                        var index = ulong.Parse(values[0].Trim().Replace("mem[", "").Replace("]", ""));
                         var value = ulong.Parse(values[1].Trim());
 
                         Instructions.Last().AddInstruction(index, value);
@@ -83,25 +101,69 @@ namespace adventOfCode2020
                     foreach (var item in instruction.Instructions)
                     {
                         var value = item.Value;
+                        foreach (var mask in instruction.MaskModified)
+                        {
+                            value = modifyBit(value, mask.index, mask.bitValue);
+                        }
+                        Memory[item.MemoryIndex] = value;
+                    }
+                }
+            }
+
+            public void RunVersionTwo()
+            {
+                foreach (var instruction in Instructions)
+                {
+                    foreach (var item in instruction.Instructions)
+                    {
+                        var memoryValues = new List<ulong>();
+                        memoryValues.Add(item.MemoryIndex);
+
                         int index = 0;
                         foreach (var maskValue in instruction.Mask.Reverse())
                         {
-                            if (maskValue != 'X')
+                            if (maskValue == 'X')
+                            {
+                                int count = memoryValues.Count();
+
+                                // vill be two different values, flip the one in values and add a new one
+                                for (int i = 0; i < count; i++)
+                                {
+                                    var memValue = memoryValues[i];
+                                    memoryValues.Add(modifyBit(memValue, index, 1));    // add
+                                    memoryValues[i] = modifyBit(memValue, index, 0);    // modify
+                                }
+                            }
+                            else if (maskValue == '0')
+                            {
+                                // unchanged
+                            }
+                            else if (maskValue == '1')
                             {
                                 var bitValue = ulong.Parse(maskValue.ToString());
-                                value = modifyBit(value, index, bitValue);
+
+                                // values to flip
+                                for (int i = 0; i < memoryValues.Count(); i++)
+                                {
+                                    memoryValues[i] = modifyBit(memoryValues[i], index, bitValue);
+                                }
                             }
+
                             index++;
                         }
 
-                        Memory[item.MemoryIndex] = value;
+                        foreach (var memoryIndex in memoryValues)
+                        {
+                            Memory[memoryIndex] = item.Value;
+                        }
+
                     }
                 }
             }
 
             public ulong Sum => GetSum();
 
-            private ulong GetSum() 
+            private ulong GetSum()
             {
                 ulong sum = 0;
                 foreach (var item in Memory)
@@ -135,9 +197,12 @@ namespace adventOfCode2020
 
         public override bool Test2()
         {
-            string filename = GetTestFilename();
+            string filename = GetTest2Filename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            bool testSucceeded = false;
+            var computer = new Computer(input);
+            computer.RunVersionTwo();
+
+            bool testSucceeded = computer.Sum == 208;
             return testSucceeded;
         }
 
@@ -145,7 +210,9 @@ namespace adventOfCode2020
         {
             string filename = GetFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            return "not implemented";
+            var computer = new Computer(input);
+            computer.RunVersionTwo();
+            return computer.Sum.ToString();
         }
     }
 }

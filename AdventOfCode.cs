@@ -63,6 +63,11 @@ namespace adventOfCode2020
             return  $"{Day}dec/input_test.txt";;
         }
 
+        public string GetTest2Filename() 
+        {
+            return  $"{Day}dec/input_test_2.txt";;
+        }
+
         public string GetFilename() 
         {
             return  $"{Day}dec/input.txt";;

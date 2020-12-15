@@ -25,7 +25,7 @@ namespace adventOfCode2020
             // to make everything line up nicely
             var firstResult = $"   1: {result1}";
             Console.Write(firstResult);
-            var spacesToAdd = 18 - firstResult.Length;
+            var spacesToAdd = 25 - firstResult.Length;
             for (int i = 0; i < spacesToAdd; i++)
             {
                 Console.Write(" ");
