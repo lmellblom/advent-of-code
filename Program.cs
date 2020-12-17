@@ -54,11 +54,12 @@ namespace adventOfCode2020
                 // previous days, only print results
                 for (int i = 0; i < day - 1; i++)
                 {
-                    puzzles[i].RunOnlyResult();
+                    // puzzles[i].RunOnlyResult();
                 }
 
                 // run this day
                 puzzles[day - 1].Run();
+                
             }
         }
     }
