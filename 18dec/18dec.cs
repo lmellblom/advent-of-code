@@ -12,15 +12,7 @@ namespace adventOfCode2020
 
         public static class Math
         {
-            public static double EvaluateExpressions(List<string> input)
-            {
-                double res = 0;
-                foreach (var expression in input)
-                {
-                    res += Evaluate(expression);
-                }
-                return res;
-            }
+            public static Func<char, char, bool> CurrentPrecedenceRule;
 
             public static long Apply(char op, long x, long y)
             {
@@ -33,13 +25,39 @@ namespace adventOfCode2020
                 }
                 return 0;
             }
+            
+            // here + is considered to apply before * !!
+            public static bool AdditionOverMultiplication(char op1, char op2)
+            {
+                if ((op1 == '*') && (op2 == '+'))
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            // does not matter! just take as you like
+            public static bool LeftToRightRule(char op1, char op2)
+            {
+                return true;
+            }
+
+            public static long EvaluateExpressions(List<string> input)
+            {
+                long res = 0;
+                foreach (string expression in input)
+                {
+                    res += Evaluate(expression);
+                }
+                return res;
+            }
 
             public static long Evaluate(string expression)
             {
-                // All the numbers to add togheter
                 Stack<long> values = new Stack<long>();
-
-                // All the operators 
                 Stack<char> ops = new Stack<char>();
 
                 string digitValue = ""; // to combine the value when a digit is more than 1 character
@@ -67,15 +85,14 @@ namespace adventOfCode2020
                     {
                         int bracketCount = 0;
                         string innerExpr = ""; // the new expression to evaluate
-                        i++; // get next char
+                        i++; // get next char and skip the (
 
-                        // until end of brackets..
                         for (; i < expression.Length; i++)
                         {
                             chr = expression[i];
 
                             // check if we found a new bracket before the end of the bracket
-                            if (chr == '(') 
+                            if (chr == '(')
                             {
                                 bracketCount++;
                             }
@@ -96,15 +113,16 @@ namespace adventOfCode2020
                         }
 
                         // add the result from the inner bracket recursive
-                        var innerDigitValue = Evaluate(innerExpr);
+                        long innerDigitValue = Evaluate(innerExpr);
                         values.Push(innerDigitValue);
                     }
                     // go trough the operators, then add previous value togehter
                     else if (chr == '+' || chr == '*')
                     {
-                        while (ops.Count > 0)
+                        // has the current operator at the stack higher order? if so, then add togheter values
+                        while (ops.Count > 0 && CurrentPrecedenceRule(ops.Peek(), chr))
                         {
-                            var res = Apply(ops.Pop(), values.Pop(), values.Pop());
+                            long res = Apply(ops.Pop(), values.Pop(), values.Pop());
                             values.Push(res);
                         }
                         ops.Push(chr);
@@ -115,13 +133,14 @@ namespace adventOfCode2020
                     }
                 }
 
-                // check if any digits left! add if so!
+                // check if any digits left!
                 if (!String.IsNullOrWhiteSpace(digitValue))
                 {
                     int digit = Int32.Parse(digitValue);
                     values.Push(digit);
                 }
 
+                // end of input! just add togheter the rest
                 while (ops.Count > 0)
                 {
                     var res = Apply(ops.Pop(), values.Pop(), values.Pop());
@@ -134,12 +153,14 @@ namespace adventOfCode2020
 
         public override bool Test()
         {
+            Math.CurrentPrecedenceRule = Math.LeftToRightRule;
             bool res1 = Math.Evaluate("1 + 2 * 3 + 4 * 5 + 6") == 71;
             bool res2 = Math.Evaluate("1 + (2 * 3) + (4 * (5 + 6))") == 51;
             bool res3 = Math.Evaluate("5 + (8 * 3 + 9 + 3 * 4 * 3)") == 437;
             bool res4 = Math.Evaluate("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))") == 12240;
             bool res5 = Math.Evaluate("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2") == 13632;
-            bool testSucceeded = res1 && res2 && res3 && res4 && res5;
+            bool res6 = Math.Evaluate("2 * 3 + (4 * 5)") == 26;
+            bool testSucceeded = res1 && res2 && res3 && res4 && res5 && res6;
             return testSucceeded;
         }
 
@@ -147,15 +168,21 @@ namespace adventOfCode2020
         {
             string filename = GetFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
+            Math.CurrentPrecedenceRule = Math.LeftToRightRule;
             double sum = Math.EvaluateExpressions(input);
             return sum.ToString();
         }
 
         public override bool Test2()
         {
-            string filename = GetTestFilename();
-            List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            bool testSucceeded = false;
+            Math.CurrentPrecedenceRule = Math.AdditionOverMultiplication;
+            bool res1 = Math.Evaluate("1 + 2 * 3 + 4 * 5 + 6") == 231;
+            bool res2 = Math.Evaluate("1 + (2 * 3) + (4 * (5 + 6))") == 51;
+            bool res3 = Math.Evaluate("5 + (8 * 3 + 9 + 3 * 4 * 3)") == 1445;
+            bool res4 = Math.Evaluate("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))") == 669060;
+            bool res5 = Math.Evaluate("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2") == 23340;
+            bool res6 = Math.Evaluate("2 * 3 + (4 * 5)") == 46;
+            bool testSucceeded = res1 && res2 && res3 && res4 && res5 && res6;
             return testSucceeded;
         }
 
@@ -163,7 +190,9 @@ namespace adventOfCode2020
         {
             string filename = GetFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            return "not implemented";
+            Math.CurrentPrecedenceRule = Math.AdditionOverMultiplication;
+            double sum = Math.EvaluateExpressions(input);
+            return sum.ToString();
         }
     }
 }
