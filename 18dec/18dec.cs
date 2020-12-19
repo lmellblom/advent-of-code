@@ -12,7 +12,6 @@ namespace adventOfCode2020
 
         public static class Math
         {
-            // addition, multiplication, parentheses
             public static double EvaluateExpressions(List<string> input)
             {
                 double res = 0;
@@ -23,21 +22,42 @@ namespace adventOfCode2020
                 return res;
             }
 
-            public static double Evaluate(string expression)
+            public static long Apply(char op, long x, long y)
             {
-                LinkedList<string> stack = new LinkedList<string>();
+                switch (op)
+                {
+                    case '+':
+                        return x + y;
+                    case '*':
+                        return x * y;
+                }
+                return 0;
+            }
 
-                string digitValue = "";
+            public static long Evaluate(string expression)
+            {
+                // All the numbers to add togheter
+                Stack<long> values = new Stack<long>();
+
+                // All the operators 
+                Stack<char> ops = new Stack<char>();
+
+                string digitValue = ""; // to combine the value when a digit is more than 1 character
                 for (int i = 0; i < expression.Count(); i++)
                 {
                     char chr = expression[i];
+
+                    if (chr == ' ') // empty string, continue
+                    {
+                        continue;
+                    }
 
                     // if no digit, add all values from before! (ex 10 is two digits but same number!!)
                     if (!char.IsDigit(chr))
                     {
                         if (!String.IsNullOrWhiteSpace(digitValue))
                         {
-                            stack.AddLast(digitValue);
+                            values.Push(Int32.Parse(digitValue));
                             digitValue = "";
                         }
                     }
@@ -46,7 +66,7 @@ namespace adventOfCode2020
                     if (chr == '(')
                     {
                         int bracketCount = 0;
-                        string inner = "";
+                        string innerExpr = ""; // the new expression to evaluate
                         i++; // get next char
 
                         // until end of brackets..
@@ -54,8 +74,8 @@ namespace adventOfCode2020
                         {
                             chr = expression[i];
 
-                            // check if we found a new bracket
-                            if (chr == '(')
+                            // check if we found a new bracket before the end of the bracket
+                            if (chr == '(') 
                             {
                                 bracketCount++;
                             }
@@ -65,27 +85,29 @@ namespace adventOfCode2020
                             {
                                 if (bracketCount == 0)
                                 {
-                                    break;
+                                    break; // YEPP!
                                 }
                                 else
                                 {
                                     bracketCount--;
                                 }
                             }
-                            inner += chr;
+                            innerExpr += chr;
                         }
 
                         // add the result from the inner bracket recursive
-                        stack.AddLast(Evaluate(inner).ToString());
+                        var innerDigitValue = Evaluate(innerExpr);
+                        values.Push(innerDigitValue);
                     }
-                    // go trough the operators
+                    // go trough the operators, then add previous value togehter
                     else if (chr == '+' || chr == '*')
                     {
-                        stack.AddLast(chr.ToString());
-                    }
-                    else if (chr == ')' || String.IsNullOrEmpty(chr.ToString()))
-                    {
-                        // do nothing, alrady have done things above
+                        while (ops.Count > 0)
+                        {
+                            var res = Apply(ops.Pop(), values.Pop(), values.Pop());
+                            values.Push(res);
+                        }
+                        ops.Push(chr);
                     }
                     else if (char.IsDigit(chr))
                     {
@@ -96,34 +118,17 @@ namespace adventOfCode2020
                 // check if any digits left! add if so!
                 if (!String.IsNullOrWhiteSpace(digitValue))
                 {
-                    stack.AddLast(digitValue);
+                    int digit = Int32.Parse(digitValue);
+                    values.Push(digit);
                 }
 
-                while (stack.Count() >= 3)
+                while (ops.Count > 0)
                 {
-
-                    double left = Double.Parse(stack.First());
-                    stack.RemoveFirst();
-                    string op = stack.First();
-                    stack.RemoveFirst();
-                    double right = Double.Parse(stack.First());
-                    stack.RemoveFirst();
-
-                    double result = 0;
-                    if (op == "+")
-                    {
-                        result = left + right;
-                    }
-                    else if (op == "*")
-                    {
-                        result = left * right;
-                    }
-
-                    // add the calculated value and the front of the list
-                    stack.AddFirst(result.ToString());
+                    var res = Apply(ops.Pop(), values.Pop(), values.Pop());
+                    values.Push(res);
                 }
 
-                return Double.Parse(stack.First());
+                return values.Pop();
             }
         }
 
