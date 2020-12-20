@@ -55,6 +55,18 @@ namespace adventOfCode2020
             }
             public void AddRule(string input)
             {
+                var rules = CreateRule(input);
+                Rules.Add(rules.Index, rules);
+            }
+
+            public void ReplaceRule(string input)
+            {
+                var rules = CreateRule(input);
+                Rules[rules.Index] = rules;
+            }
+
+            private Rule CreateRule(string input)
+            {
                 var splittedInput = input.Split(":");
                 var rulestring = splittedInput[1].Trim();
 
@@ -63,29 +75,47 @@ namespace adventOfCode2020
 
                 // split the rulstring on rulestring
                 var rules = new Rule(rulestring, number);
-                Rules.Add(number, rules);
+                return rules;
             }
+
+            public Dictionary<string, List<string>> Memory = new Dictionary<string, List<string>>();
 
             public List<string> TraverseRules(Rule startRule)
             {
-                var output = new List<string>();
                 int subRulesCount = startRule.RulesReferences.Count();
                 if (subRulesCount == 0)
                 {
-                    output.Add(startRule.Value);
-                    return output;
+                    var values = new List<string>() { startRule.Value };
+                    string memoryIndex = startRule.Index.ToString();
+                    Memory.Add(memoryIndex, values);
+                    return values;
                 }
 
+                var output = new List<string>();
                 foreach (var subRules in startRule.RulesReferences)
                 {
                     var allResults = new List<List<string>>();
                     foreach (var ruleInt in subRules)
                     {
-                        var rule = Rules[ruleInt];
-                        var result = TraverseRules(rule);
+                        // check if exists in memory?
+                        string memoryIndex = ruleInt.ToString();
+                        List<string> result;
+                        if (Memory.ContainsKey(memoryIndex))
+                        {
+                            result = Memory[memoryIndex];
+                        }
+                        else
+                        {
+                            var rule = Rules[ruleInt];
+                            result = TraverseRules(rule);
+                            if (!Memory.ContainsKey(memoryIndex))
+                            {
+                                Memory.Add(memoryIndex, result);
+                            }
+                        }
                         allResults.Add(result);
                     }
-                    
+
                     var allCombos = GetAllPossibleCombos(allResults);
                     output = output.Concat(allCombos).ToList();
                 }
@@ -127,8 +157,14 @@ namespace adventOfCode2020
                 }
             }
 
+            public void ReplaceRule(string value)
+            {
+                Rules.ReplaceRule(value);
+            }
+
             public int CountValidMessagesFromRule0()
             {
+                Rules.Memory = new Dictionary<string, List<string>>();
                 var rules = Rules.ValidValuesFromIndex(0);
                 int sum = 0;
                 foreach (var message in Messages)
@@ -155,7 +191,7 @@ namespace adventOfCode2020
         public override string First()
         {
             string filename = GetFilename();
-             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
+            List<string> input = System.IO.File.ReadAllLines(filename).ToList();
             var messages = new MonsterMessages(input);
             int sum = messages.CountValidMessagesFromRule0();
             return sum.ToString();
@@ -165,7 +201,15 @@ namespace adventOfCode2020
         {
             string filename = GetTestFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            bool testSucceeded = false;
+            var messages = new MonsterMessages(input);
+            int sum = messages.CountValidMessagesFromRule0();
+
+            // replace rules
+            //messages.ReplaceRule("8: 42 | 42 8");
+            //messages.ReplaceRule("11: 42 31 | 42 11 31");
+
+            int sum2 = messages.CountValidMessagesFromRule0();
+            bool testSucceeded = sum2 == 12;
             return testSucceeded;
         }
 
