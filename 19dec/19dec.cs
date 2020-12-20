@@ -106,11 +106,20 @@ namespace adventOfCode2020
                         }
                         else
                         {
-                            var rule = Rules[ruleInt];
-                            result = TraverseRules(rule);
-                            if (!Memory.ContainsKey(memoryIndex))
+                            // check infinite looop? 
+                            if (ruleInt == startRule.Index)
                             {
-                                Memory.Add(memoryIndex, result);
+                                Console.WriteLine("INFINITE LOOP! how to fix?");
+                                continue; // WHAT TO ADD HERE???
+                            }
+                            else
+                            {
+                                var rule = Rules[ruleInt];
+                                result = TraverseRules(rule);
+                                if (!Memory.ContainsKey(memoryIndex))
+                                {
+                                    Memory.Add(memoryIndex, result);
+                                }
                             }
                         }
                         allResults.Add(result);
