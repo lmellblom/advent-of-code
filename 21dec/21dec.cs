@@ -17,38 +17,33 @@ namespace adventOfCode2020
 
             public AllergenAssessment(List<string> input)
             {
-                Foods = new List<Food>();
-                foreach (var item in input)
-                {
-                    var food = new Food(item);
-                    Foods.Add(food);
-                }
-
+                Foods = input.Select(line => new Food(line)).ToList();
                 ContructAllergens();
             }
 
             private void ContructAllergens()
             {
-                var allAllergens = Foods.SelectMany(x => x.Allergens).Distinct();
-                foreach (var allergen in allAllergens)
+                var distinctAllergens = Foods.SelectMany(x => x.Allergens).Distinct();
+                foreach (var allergen in distinctAllergens)
                 {
                     var ingredientsThatMaybeContainsTheAllergen = Foods
                         .Where(x => x.Allergens.Contains(allergen))
                         .Select(x => x.Ingredients)
                         .ToList();
 
+                    var possibleIngredients = ingredientsThatMaybeContainsTheAllergen
+                        .Aggregate((x, y) => x.Intersect(y).ToList());
+
                     // find the intersections between all the ingredients
                     IngredientsByAllergen.Add(
                         allergen,
-                        ingredientsThatMaybeContainsTheAllergen
-                            .Aggregate((x, y) => x.Intersect(y)
-                            .ToList()
-                        ));
+                        possibleIngredients);
                 }
             }
 
             public int Run()
             {
+                // Find the ingredients that is not in the allergy list!
                 return Foods
                     .SelectMany(x => x.Ingredients)
                     .Where(x => !IngredientsByAllergen.SelectMany(x => x.Value).Distinct().Contains(x))
@@ -61,7 +56,10 @@ namespace adventOfCode2020
                 while (IngredientsByAllergen.Any(item => item.Value.Count() != 1))
                 {
                     // get the first value that is one and remove in other lists
-                    var remove = IngredientsByAllergen.Where(item => item.Value.Count() == 1).Select(item => item.Value).SelectMany(v => v).ToList();
+                    var remove = IngredientsByAllergen
+                        .Where(item => item.Value.Count() == 1)
+                        .SelectMany(item => item.Value)
+                        .ToList();
                     var valuesMoreThen1 = IngredientsByAllergen.Where(item => item.Value.Count() != 1);
                     foreach (var item in valuesMoreThen1)
                     {
@@ -82,12 +80,22 @@ namespace adventOfCode2020
             public List<string> Allergens;
             public Food(string input)
             {
-                var splittedInput = input.Split('(');
-                var ingredientsInput = splittedInput[0].Trim();
-                Ingredients = ingredientsInput.Split(" ").ToList();
+                Ingredients = input
+                    .Split('(')
+                    .First()
+                    .Trim()
+                    .Split(" ")
+                    .Select(value => value.Trim())
+                    .ToList();
 
-                var allergensInput = splittedInput[1].Replace(")", "").Replace("contains", "");
-                Allergens = allergensInput.Split(",").Select(a => a.Trim()).ToList();
+                Allergens = input
+                    .Split('(')
+                    .Last()
+                    .Replace(")", "")
+                    .Replace("contains", "")
+                    .Split(",")
+                    .Select(value => value.Trim())
+                    .ToList();
             }
 
             // Each allergen is found in exactly one ingredient. Each ingredient contains zero or one allergen
