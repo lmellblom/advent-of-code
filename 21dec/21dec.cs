@@ -13,8 +13,8 @@ namespace adventOfCode2020
         public class AllergenAssessment
         {
             public List<Food> Foods;
-            public Dictionary<string, List<string>> MaybeAllergenListByIngredient = new Dictionary<string, List<string>>();
-            public Dictionary<string, List<Food>> FoodsByAllergies = new Dictionary<string, List<Food>>();
+            public Dictionary<string, List<string>> IngredientsByAllergen = new Dictionary<string, List<string>>();
+
             public AllergenAssessment(List<string> input)
             {
                 Foods = new List<Food>();
@@ -22,65 +22,57 @@ namespace adventOfCode2020
                 {
                     var food = new Food(item);
                     Foods.Add(food);
+                }
 
-                    foreach (var ingredient in food.Ingredients)
-                    {
-                        if (!MaybeAllergenListByIngredient.ContainsKey(ingredient))
-                        {
-                            MaybeAllergenListByIngredient[ingredient] = new List<string>();
-                        }
+                ContructAllergens();
+            }
 
-                        MaybeAllergenListByIngredient[ingredient] = MaybeAllergenListByIngredient[ingredient].Union(food.Allergens).ToList();
-                    }
+            private void ContructAllergens()
+            {
+                var allAllergens = Foods.SelectMany(x => x.Allergens).Distinct();
+                foreach (var allergen in allAllergens)
+                {
+                    var ingredientsThatMaybeContainsTheAllergen = Foods
+                        .Where(x => x.Allergens.Contains(allergen))
+                        .Select(x => x.Ingredients)
+                        .ToList();
 
-                    foreach (var allergi in food.Allergens)
-                    {
-                        if (!FoodsByAllergies.ContainsKey(allergi))
-                        {
-                            FoodsByAllergies[allergi] = new List<Food>();
-                        }
-
-                        FoodsByAllergies[allergi].Add(food);
-                    }
+                    // find the intersections between all the ingredients
+                    IngredientsByAllergen.Add(
+                        allergen,
+                        ingredientsThatMaybeContainsTheAllergen
+                            .Aggregate((x, y) => x.Intersect(y)
+                            .ToList()
+                        ));
                 }
             }
 
             public int Run()
             {
-                var safeIngredients = new List<string>();
-                foreach (var (ingredient, possibleAllergies) in MaybeAllergenListByIngredient)
-                {
-                    var impossible = new List<string>();
-                    foreach (var allergi in possibleAllergies)
-                    {
-                        foreach (var food in FoodsByAllergies[allergi])
-                        {
-                            var contains = food.Ingredients.Contains(ingredient);
-                            if (!contains)
-                            {
-                                impossible.Add(allergi);
-                                break;
-                            }
-                        }
-                    }
+                return Foods
+                    .SelectMany(x => x.Ingredients)
+                    .Where(x => !IngredientsByAllergen.SelectMany(x => x.Value).Distinct().Contains(x))
+                    .Count();
+            }
 
-                    var possibleLeft = possibleAllergies.Except(impossible).ToList();
-                    if (!possibleLeft.Any())
-                    {   
-                        safeIngredients.Add(ingredient);
+            public string Run2()
+            {
+                // same as 16dec
+                while (IngredientsByAllergen.Any(item => item.Value.Count() != 1))
+                {
+                    // get the first value that is one and remove in other lists
+                    var remove = IngredientsByAllergen.Where(item => item.Value.Count() == 1).Select(item => item.Value).SelectMany(v => v).ToList();
+                    var valuesMoreThen1 = IngredientsByAllergen.Where(item => item.Value.Count() != 1);
+                    foreach (var item in valuesMoreThen1)
+                    {
+                        item.Value.RemoveAll(x => remove.Contains(x));
                     }
                 }
 
-                var total = 0;
-                foreach (var ingr in safeIngredients)
-                {
-                    foreach (var food in Foods)
-                    {
-                        total += food.Ingredients.Count(i => i == ingr);
-                    }
-                }
-
-                return total;
+                var orderedIngredients = IngredientsByAllergen
+                    .OrderBy(item => item.Key)
+                    .SelectMany((item => item.Value));
+                return string.Join(",", orderedIngredients);
             }
         }
 
@@ -126,7 +118,9 @@ namespace adventOfCode2020
         {
             string filename = GetTestFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            bool testSucceeded = false;
+            var assessment = new AllergenAssessment(input);
+            var result = assessment.Run2();
+            bool testSucceeded = result == "mxmxvkd,sqjhc,fvjkl";
             return testSucceeded;
         }
 
@@ -134,7 +128,9 @@ namespace adventOfCode2020
         {
             string filename = GetFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            return "not implemented";
+            var assessment = new AllergenAssessment(input);
+            var result = assessment.Run2();
+            return result.ToString();
         }
     }
 }
