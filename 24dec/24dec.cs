@@ -13,10 +13,23 @@ namespace adventOfCode2020
         public record Tile(int x, int y)
         {
             public bool White { get; set; } = true;
+
+            public bool? FlipTo { get; set; }
+
             public void Flip()
             {
                 White = !White;
             }
+
+            public void ExecuteFlip()
+            {
+                if (FlipTo.HasValue)
+                {
+                    White = FlipTo.Value;
+                    FlipTo = null;
+                }
+            }
+
             public string Index => $"{x},{y}";
         }
 
@@ -26,15 +39,23 @@ namespace adventOfCode2020
 
             public Dictionary<string, Tile> TilesVisited { get; set; }
 
+            public Dictionary<string, Tile> NewTiles { get; set; }
+
             public LobbyLayout(List<string> input)
             {
                 TilesToFlip = input;
                 TilesVisited = new Dictionary<string, Tile>();
+                NewTiles = new Dictionary<string, Tile>();
             }
 
-            public List<Tile> AdjacentTiles(Tile tile)
+            public List<Tile> AdjacentTiles(Tile tile, bool addIfMissing = true)
             {
                 // directions of neighbour
+                List<(int x, int y)> neighboursIndex = new List<(int x, int y)>()
+                {
+                    (1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)
+                };
+
                 // e = y: same, x: +1
                 // se = y: -1, x: +1
                 // sw = y: -1, x: same
@@ -42,7 +63,23 @@ namespace adventOfCode2020
                 // nw = y: 1, x: -1
                 // ne = y: 1, x: same
 
-                return new List<Tile>();
+                var neighbours = new List<Tile>();
+                foreach (var item in neighboursIndex)
+                {
+                    int x = item.x + tile.x;
+                    int y = item.y + tile.y;
+
+                    if (TilesVisited.ContainsKey($"{x},{y}"))
+                    {
+                        neighbours.Add(TilesVisited[$"{x},{y}"]);
+                    }
+                    else if (!NewTiles.ContainsKey($"{x},{y}") && addIfMissing)
+                    {
+                        NewTiles.Add($"{x},{y}", new Tile(x, y));
+                    }
+                }
+
+                return neighbours;
             }
 
             public void Run()
@@ -110,6 +147,61 @@ namespace adventOfCode2020
                 }
             }
 
+            public void Run2(int days = 10)
+            {
+                Run();
+
+                // start to execute days of flipping 
+                for (int day = 1; day <= days; day++)
+                {
+                    // Any black tile with zero or more than 2 black tiles immediately adjacent to it is flipped to white.
+                    // Any white tile with exactly 2 black tiles immediately adjacent to it is flipped to black.
+                    foreach (var (ind, tile) in TilesVisited)
+                    {
+                        var adjacent = AdjacentTiles(tile);
+                        var blackAdjacent = adjacent.Where((item) => !item.White).Count();
+
+                        if (tile.White && blackAdjacent == 2)
+                        {
+                            // exactly 2 black tiles, flip to black!
+                            tile.FlipTo = false;
+                        }
+                        else if (!tile.White && (blackAdjacent == 0 || blackAdjacent > 2))
+                        {
+                            tile.FlipTo = true;
+                        }
+                    }
+
+                    foreach (var (ind, tile) in NewTiles)
+                    {
+                        TilesVisited.Add(tile.Index, tile);
+
+                        var adjacent = AdjacentTiles(tile, false);
+                        var blackAdjacent = adjacent.Where((item) => !item.White).Count();
+
+                        if (tile.White && blackAdjacent == 2)
+                        {
+                            // exactly 2 black tiles, flip to black!
+                            tile.FlipTo = false;
+                        }
+                        else if (!tile.White && (blackAdjacent == 0 || blackAdjacent > 2))
+                        {
+                            tile.FlipTo = true;
+                        }
+                    }
+
+                    foreach (var (ind, tile) in TilesVisited)
+                    {
+                        tile.ExecuteFlip();
+                    }
+
+                    NewTiles = new Dictionary<string, Tile>();
+                    var nr = CountBlackTiles();
+
+                    // Console.WriteLine($"Day {day}: {nr}");
+                }
+            }
+
             public int CountBlackTiles()
             {
                 int sum = TilesVisited.Where((item) => !item.Value.White).Count();
@@ -142,7 +234,10 @@ namespace adventOfCode2020
         {
             string filename = GetTestFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            bool testSucceeded = false;
+            var lobby = new LobbyLayout(input);
+            lobby.Run2(100);
+            var res = lobby.CountBlackTiles();
+            bool testSucceeded = res == 2208;
             return testSucceeded;
         }
 
@@ -150,7 +245,10 @@ namespace adventOfCode2020
         {
             string filename = GetFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            return "not implemented";
+            var lobby = new LobbyLayout(input);
+            lobby.Run2(100);
+            var res = lobby.CountBlackTiles();
+            return res.ToString();
         }
     }
 }
