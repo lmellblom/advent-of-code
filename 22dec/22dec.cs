@@ -14,8 +14,8 @@ namespace adventOfCode2020
 
         public class Player
         {
-            public Queue<int> Cards { get; private set; } // Will store the cards on the players hand
-            public int PlayedCard { get; private set; } // Current played card from that player
+            public Queue<int> Cards { get; private set; }   // Will store the cards on the players hand
+            public int PlayedCard { get; private set; }     // Current played card from that player
             public string Name { get; set; }
             public int NrOfCards => Cards.Count();
             public bool Won = false; // for part 2
@@ -34,10 +34,7 @@ namespace adventOfCode2020
             {
                 Name = name;
                 Cards = new Queue<int>();
-                foreach (var card in cards)
-                {
-                    Cards.Enqueue(card);
-                }
+                cards.ForEach(card => Cards.Enqueue(card));
                 _memory = new List<string>();
             }
 
@@ -66,10 +63,7 @@ namespace adventOfCode2020
 
             public void WonCards(List<int> cards)
             {
-                foreach (var card in cards)
-                {
-                    AddCard(card);
-                }
+                cards.ForEach(card => AddCard(card));
             }
 
             public void WonCards(int card1, int card2)
@@ -81,7 +75,7 @@ namespace adventOfCode2020
             public void PrintCards()
             {
                 var cards = String.Join(",", Cards.ToArray());
-                Console.WriteLine($"{Name}'s cards: {cards}");
+                if (PRINT) Console.WriteLine($"{Name}'s cards: {cards}");
             }
 
             public int GetScore()
@@ -118,8 +112,9 @@ namespace adventOfCode2020
 
                 // If both players have at least as many cards remaining 
                 // in their deck as the value of the card they just drew, 
-                // the winner of the round is determined by playing a new game of Recursive Combat (see below).
+                // the winner of the round is determined by playing a new game of Recursive Combat.
                 Player playerWon;
+
                 bool playSubgame = Players.All(p => p.NrOfCards >= p.PlayedCard);
                 if (playSubgame)
                 {
@@ -335,12 +330,6 @@ namespace adventOfCode2020
             RecursiveCombat game = new RecursiveCombat(input);
             game.PlayGame();
             var result = game.Score();
-
-            // string filename2 = GetTest2Filename();
-            // List<string> input2 = System.IO.File.ReadAllLines(filename2).ToList();
-            // RecursiveCombat game2 = new RecursiveCombat(input2);
-            // game2.PlayGame();
-            // game2.Score2();
 
             bool testSucceeded = result == 291;
             return testSucceeded;
