@@ -10,14 +10,172 @@ namespace adventOfCode2020
         {
         }
 
-        public class PocketDimension
+        public class Cube
         {
-            public List<Cube> Cubes { get; set; }
-            private List<Cube> CubesToAdd { get; set; }
-            public PocketDimension(List<string> input)
+            public Cube(int ix, int iy, int iz)
             {
-                Cubes = new List<Cube>();
-                CubesToAdd = new List<Cube>();
+                x = ix;
+                y = iy;
+                z = iz;
+                IsActive = false;
+            }
+            public int x { get; set; }
+            public int y { get; set; }
+            public int z { get; set; }
+            public bool IsActive { get; set; }
+            public bool? SwapTo { get; set; }
+
+            public bool SetNextState(int activeNeighbours)
+            {
+                if (IsActive)
+                {
+                    // If a cube is active and exactly 2 or 3 of its neighbors are also active, the cube remains active. 
+                    // Otherwise, the cube becomes inactive.
+                    if (activeNeighbours == 2 || activeNeighbours == 3)
+                    {
+                        SwapTo = true;
+                    }
+                    else
+                    {
+                        SwapTo = false;
+                    }
+                }
+                else
+                {
+                    // If a cube is inactive but exactly 3 of its neighbors are active, the cube becomes active. 
+                    // Otherwise, the cube remains inactive.
+                    if (activeNeighbours == 3)
+                    {
+                        SwapTo = true;
+                    }
+                    else
+                    {
+                        SwapTo = false;
+                    }
+                }
+
+                return SwapTo.Value;
+            }
+            public void ExecuteSwap()
+            {
+                if (SwapTo.HasValue)
+                {
+                    IsActive = SwapTo.Value;
+                    SwapTo = null;
+                }
+            }
+
+            public virtual string Index => $"{x},{y},{z}";
+        }
+
+        public class Cube4D : Cube
+        {
+            public Cube4D(int ix, int iy, int iz, int iw) : base(ix, iy, iz)
+            {
+                w = iw;
+            }
+
+            public int w { get; set; }
+
+            public override string Index => $"{x},{y},{z},{w}";
+        }
+
+        public class ConwayCubes4D : ConwayCubes
+        {
+            public ConwayCubes4D(List<string> input) : base()
+            {
+                Cubes = new Dictionary<string, Cube>();
+                NewCubes = new Dictionary<string, Cube>();
+                int z = 0; int w = 0;
+                for (int x = 0; x < input.Count(); x++)
+                {
+                    var row = input[x];
+                    for (int y = 0; y < row.Count(); y++)
+                    {
+                        var value = row[y];
+                        bool isActive = value == '#'; // . == false
+
+                        if (isActive)
+                        {
+                            var cube = new Cube4D(x, y, z, w);
+                            cube.IsActive = isActive;
+                            Cubes.Add(cube.Index, cube);
+                        }
+                    }
+                }
+            }
+
+            public override int ActiveNeighbors(Cube cube, bool addIfMissing = true)
+            {
+                var neighbours = 0;
+
+                int xIndex = cube.x;
+                int yIndex = cube.y;
+                int zIndex = cube.z;
+                int wIndex = (cube as Cube4D).w;
+
+                // -1, 0, 1
+                List<int> xs = Enumerable.Range(-1, 3).Select(nr => nr + xIndex).ToList();
+                List<int> ys = Enumerable.Range(-1, 3).Select(nr => nr + yIndex).ToList();
+                List<int> zs = Enumerable.Range(-1, 3).Select(nr => nr + zIndex).ToList();
+                List<int> ws = Enumerable.Range(-1, 3).Select(nr => nr + wIndex).ToList();
+
+                foreach (var x in xs)
+                {
+                    foreach (var y in ys)
+                    {
+                        foreach (var z in zs)
+                        {
+                            foreach (var w in ws)
+                            {
+                                if (x == xIndex && y == yIndex && z == zIndex && w == wIndex)
+                                {
+                                    // this is the cube we have
+                                    continue;
+                                }
+
+                                var index = $"{x},{y},{z},{w}";
+                                if (Cubes.ContainsKey(index))
+                                {
+                                    var neighbour = Cubes[index];
+                                    if (neighbour.IsActive)
+                                    {
+                                        neighbours++;
+                                    }
+                                }
+                                else if (!NewCubes.ContainsKey(index) && addIfMissing)
+                                {
+                                    var newCube = new Cube4D(x, y, z, w);
+                                    newCube.IsActive = false;
+                                    NewCubes.Add(newCube.Index, newCube);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return neighbours;
+            }
+        }
+
+        public class ConwayCubes
+        {
+            public Dictionary<string, Cube> Cubes { get; set; }
+
+            public Dictionary<string, Cube> NewCubes { get; set; }
+
+            public Dictionary<string, Cube> CubesToRemove { get; set; }
+
+            public ConwayCubes()
+            {
+                NewCubes = new Dictionary<string, Cube>();
+                CubesToRemove = new Dictionary<string, Cube>();
+            }
+
+            public ConwayCubes(List<string> input)
+            {
+                Cubes = new Dictionary<string, Cube>();
+                NewCubes = new Dictionary<string, Cube>();
                 int z = 0;
                 for (int x = 0; x < input.Count(); x++)
                 {
@@ -26,86 +184,27 @@ namespace adventOfCode2020
                     {
                         var value = row[y];
                         bool isActive = value == '#'; // . == false
-                        Cubes.Add(new Cube(x, y, z, isActive));
+
+                        if (isActive)
+                        {
+                            var cube = new Cube(x, y, z);
+                            cube.IsActive = isActive;
+                            Cubes.Add(cube.Index, cube);
+                        }
                     }
                 }
 
-                foreach (var cube in Cubes)
-                {
-                    var cubeNeighbours = Neighbors(cube);
-                }
-
-                // add missing neigbours to Cubes
-                Cubes.AddRange(CubesToAdd);
-
-                // clear neigbours
-                CubesToAdd = new List<Cube>();
+                NewCubes = new Dictionary<string, Cube>();
+                CubesToRemove = new Dictionary<string, Cube>();
             }
 
-            public int NrOfActiveCubes()
+            public virtual int ActiveNeighbors(Cube cube, bool addIfMissing = true)
             {
-                return Cubes.Where(c => c.IsActive).Count();
-            }
+                var neighbours = 0;
 
-            public void BootProcess(int cycles = 6, bool print = true)
-            {
-                Print();
-
-                for (int cycle = 0; cycle < cycles; cycle++)
-                {
-                    Console.WriteLine($"Cycle = {cycle + 1}");
-                    foreach (var cube in Cubes)
-                    {
-                        var cubeNeighbours = Neighbors(cube);
-                        int activeNeighbours = cubeNeighbours.Where(c => c.IsActive).Count();
-
-                        // get the next state
-                        cube.SetNextState(activeNeighbours);
-                    }
-
-                    // execute flip
-                    foreach (var cube in Cubes)
-                    {
-                        cube.ExecuteSwap();
-                    }
-
-                    // end of round
-                    Print();
-
-                    // add missing neigbours to Cubes
-                    Cubes.AddRange(CubesToAdd);
-
-                    // clear neigbours
-                    CubesToAdd = new List<Cube>();
-
-
-
-                }
-            }
-
-            private bool CubeExists(int xIndex, int yIndex, int zIndex)
-            {
-                return CubeExists(xIndex, yIndex, zIndex, Cubes);
-            }
-
-            private bool CubeExists(int xIndex, int yIndex, int zIndex, List<Cube> cubes)
-            {
-                if (cubes.Any())
-                {
-                    var (x, y, z) = GetRange(cubes);
-                    return x.Contains(xIndex) && y.Contains(yIndex) && z.Contains(zIndex);
-                }
-                return false;
-            }
-
-            // public List<Cube> Neighbors(int xIndex, int yIndex, int zIndex)
-            private List<Cube> Neighbors(Cube cube)
-            {
-                List<Cube> output = new List<Cube>();
-
-                int xIndex = cube.X;
-                int yIndex = cube.Y;
-                int zIndex = cube.Z;
+                int xIndex = cube.x;
+                int yIndex = cube.y;
+                int zIndex = cube.z;
 
                 // -1, 0, 1
                 List<int> xs = Enumerable.Range(-1, 3).Select(nr => nr + xIndex).ToList();
@@ -124,173 +223,83 @@ namespace adventOfCode2020
                                 continue;
                             }
 
-                            // check if out of range?
-                            var neigbour = GetCube(x, y, z);
-                            if (neigbour == null)
+                            var index = $"{x},{y},{z}";
+                            if (Cubes.ContainsKey(index))
                             {
-                                // out of range, add a new cube with inactive state
-                                var cubeState = false;
-                                var newCube = new Cube(x, y, z, cubeState);
-
-                                var cubenotfound = GetCube(x, y, z, CubesToAdd) == null;
-                                if (cubenotfound)
+                                var neighbour = Cubes[index];
+                                if (neighbour.IsActive)
                                 {
-                                    CubesToAdd.Add(newCube);
+                                    neighbours++;
                                 }
-                                output.Add(newCube);
                             }
-                            else
+                            else if (!NewCubes.ContainsKey(index) && addIfMissing)
                             {
-                                output.Add(neigbour);
+                                var newCube = new Cube(x, y, z);
+                                newCube.IsActive = false;
+                                NewCubes.Add(newCube.Index, newCube);
                             }
                         }
                     }
                 }
 
-                if (output.Count() != 26)
+                return neighbours;
+            }
+
+            public void BootProcess(int cycles = 6)
+            {
+                for (int cycle = 0; cycle < cycles; cycle++)
                 {
-                    Console.WriteLine("ERROR! neigbour count is wrong");
-                }
-
-                return output;
-            }
-
-            private (IEnumerable<int> xRange, IEnumerable<int> yRange, IEnumerable<int> zRange) GetRange(List<Cube> cubes)
-            {
-                var x = cubes.Select(cube => cube.X).Distinct();
-                var xValues = GetRange(x.Min(), x.Max());
-                var y = cubes.Select(cube => cube.Y).Distinct();
-                var yValues = GetRange(y.Min(), y.Max());
-                var z = cubes.Select(cube => cube.Z).Distinct();
-                var zValues = GetRange(z.Min(), z.Max());
-                return (xValues, yValues, zValues);
-            }
-
-            private IEnumerable<int> GetRange(int min, int max)
-            {
-                return Enumerable.Range(min, max - min + 1);
-            }
-
-            private Cube GetCube(int x, int y, int z)
-            {
-                return GetCube(x, y, z, Cubes);
-            }
-
-            private Cube GetCube(int x, int y, int z, List<Cube> cubes)
-            {
-                return cubes.FirstOrDefault(cube => cube.X == x && cube.Y == y && cube.Z == z);
-            }
-
-            public void Print()
-            {
-                // get all dimensions
-                var (x, y, z) = GetRange(Cubes);
-
-                foreach (var zIndex in z)
-                {
-                    Console.WriteLine($"z={zIndex}");
-                    foreach (var xIndex in x)
+                    foreach (var (ind, cube) in Cubes)
                     {
-                        foreach (var yIndex in y)
+                        int activeNeighbours = ActiveNeighbors(cube);
+                        bool nextState = cube.SetNextState(activeNeighbours);
+                        // if the new state of the cube is inactive, then remove
+                        if (!nextState)
                         {
-                            var cube = GetCube(xIndex, yIndex, zIndex);
-                            if (cube != null)
-                            {
-                                var value = cube.Print();
-                                Console.Write(value);
-                            }
-                            else
-                            {
-                                Console.Write(".");
-                            }
+                            CubesToRemove.Add(ind, cube);
                         }
-
-                        Console.WriteLine("");
                     }
-                }
-                Console.WriteLine("");
-            }
-        }
 
-        public class Cube
-        {
-            public bool IsActive { get; set; } // # == active, . == inactive
-            public int X { get; set; }
-            public int Y { get; set; }
-            public int Z { get; set; }
-            public bool? SwapTo { get; set; }
-
-            public string Print()
-            {
-                if (IsActive)
-                {
-                    return "#";
-                }
-                else
-                {
-                    return ".";
-                }
-            }
-
-            public void SetNextState(int activeNeighbours)
-            {
-                if (IsActive)
-                {
-                    // If a cube is active and exactly 2 or 3 of its neighbors are also active, the cube remains active. 
-                    // Otherwise, the cube becomes inactive.
-                    if (activeNeighbours == 2 || activeNeighbours == 3)
+                    // only add if the newCubeState is active
+                    foreach (var (ind, cube) in NewCubes)
                     {
-                        // SwapTo = true;
+                        int activeNeighbours = ActiveNeighbors(cube, false);
+                        var nextState = cube.SetNextState(activeNeighbours);
+                        if (nextState)
+                        {
+                            Cubes.Add(ind, cube);
+                        }
                     }
-                    else
+
+                    foreach (var (ind, cube) in CubesToRemove)
                     {
-                        SwapTo = false;
+                        Cubes.Remove(ind);
                     }
-                }
-                else
-                {
-                    // If a cube is inactive but exactly 3 of its neighbors are active, the cube becomes active. 
-                    // Otherwise, the cube remains inactive.
-                    if (activeNeighbours == 3)
+
+                    foreach (var (ind, cube) in Cubes)
                     {
-                        SwapTo = true;
+                        cube.ExecuteSwap();
                     }
-                    else
-                    {
-                        // SwapTo = false;
-                    }
+
+                    NewCubes = new Dictionary<string, Cube>();
+                    CubesToRemove = new Dictionary<string, Cube>();
                 }
             }
 
-            public void ExecuteSwap()
+            public int NrActiveCubes()
             {
-                if (SwapTo.HasValue)
-                {
-                    IsActive = SwapTo.Value;
-                    SwapTo = null;
-                }
+                int sum = Cubes.Where((item) => item.Value.IsActive).Count();
+                return sum;
             }
-
-            public Cube(int x, int y, int z, bool isActive = false)
-            {
-                X = x;
-                Y = y;
-                Z = z;
-                IsActive = isActive;
-                SwapTo = null; // not!
-            }
-
-            // get all neighbours är typ -1 -> 1 i varje dimension, tre foor-lopar
         }
 
         public override bool Test()
         {
             string filename = GetTestFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-
-            var pocketDimension = new PocketDimension(input);
-            pocketDimension.BootProcess(6, true);
-            int activeCubes = pocketDimension.NrOfActiveCubes();
+            var conwayCubes = new ConwayCubes(input);
+            conwayCubes.BootProcess(6);
+            int activeCubes = conwayCubes.NrActiveCubes();
             bool testSucceeded = activeCubes == 112;
             return testSucceeded;
         }
@@ -299,9 +308,9 @@ namespace adventOfCode2020
         {
             string filename = GetFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            var pocketDimension = new PocketDimension(input);
-            pocketDimension.BootProcess(6, true);
-            int activeCubes = pocketDimension.NrOfActiveCubes();
+            var conwayCubes = new ConwayCubes(input);
+            conwayCubes.BootProcess(6);
+            int activeCubes = conwayCubes.NrActiveCubes();
             return activeCubes.ToString();
         }
 
@@ -309,7 +318,10 @@ namespace adventOfCode2020
         {
             string filename = GetTestFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            bool testSucceeded = false;
+            var conwayCubes = new ConwayCubes4D(input);
+            conwayCubes.BootProcess(6);
+            int activeCubes = conwayCubes.NrActiveCubes();
+            bool testSucceeded = activeCubes == 848;
             return testSucceeded;
         }
 
@@ -317,7 +329,10 @@ namespace adventOfCode2020
         {
             string filename = GetFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            return "not implemented";
+            var conwayCubes = new ConwayCubes4D(input);
+            conwayCubes.BootProcess(6);
+            int activeCubes = conwayCubes.NrActiveCubes();
+            return activeCubes.ToString();
         }
     }
 }
