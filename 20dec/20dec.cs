@@ -75,23 +75,18 @@ namespace adventOfCode2020
         {
             public int Id { get; private set; }
             public List<string> Data { get; private set; }
-
-            public bool IsPlacedOnGrid = false;
-
             public IEnumerable<string> Edges => Enum
                 .GetValues(typeof(Edge))
                 .Cast<Edge>()
                 .Select(n => GetEdgeString(n));
 
-            public IEnumerable<(string, string)> EdgesWithSide => Enum
-                .GetValues(typeof(Edge))
-                .Cast<Edge>()
-                .Select(n => (n.ToString(), GetEdgeString(n)));
-
             // Is filled during processing
+            public bool IsPlacedOnGrid = false;
             public bool IsCorner => NrAdjacentTiles == 2;
             public bool IsEdge => NrAdjacentTiles == 3;
             public int NrAdjacentTiles = 0;
+            public int Size => Data.Count();
+            public int SizeWithoutBorder => Data.Count() - 2;
 
             public Tile(int id, List<string> data)
             {
@@ -172,6 +167,111 @@ namespace adventOfCode2020
                 }
                 Console.WriteLine();
             }
+            public string GetRow(int row)
+            {
+                return Data[row];
+            }
+
+            public void UpdateRow(int row, string data)
+            {
+                Data[row] = data;
+            }
+        }
+
+        public class BigImage
+        {
+            private Tile[,] Tiles { get; set; }
+            public Tile Tile { get; set; }
+            public BigImage(Tile[,] input, int gridSize)
+            {
+                Tiles = input;
+
+                var newImage = new List<string>();
+                for (int row = 0; row < gridSize; row++)
+                {
+                    var tiles = new List<Tile>();
+                    for (int col = 0; col < gridSize; col++)
+                    {
+                        tiles.Add(Tiles[row, col]);
+                    }
+
+                    var tileRows = tiles.FirstOrDefault().Size;
+                    // construct the new image, remove the borders.
+                    for (int i = 1; i < tileRows - 1; i++)
+                    {
+                        var newRow = tiles.Aggregate("", (preTile, tile) =>
+                            preTile + tile.GetRow(i).Substring(1, tileRows - 2));
+
+                        newImage.Add(newRow);
+                    }
+                }
+                Tile = new Tile(1, newImage);
+            }
+
+            public void LookForSeaMonster()
+            {
+                // look for seamonsters in each rotation, then flip vertical and look in each rotation
+                Queue<Action> tileActions = new Queue<Action>();
+                tileActions.Enqueue(Tile.Rotate);
+                tileActions.Enqueue(Tile.Rotate);
+                tileActions.Enqueue(Tile.Rotate);
+                tileActions.Enqueue(Tile.Rotate);
+                tileActions.Enqueue(Tile.FlipVertical);
+                tileActions.Enqueue(Tile.Rotate);
+                tileActions.Enqueue(Tile.Rotate);
+                tileActions.Enqueue(Tile.Rotate);
+
+                List<(int rowIndex, List<int> patternIndex)> pattern = new List<(int, List<int>)>();
+                pattern.Add((0, new List<int>() { 18 }));
+                pattern.Add((1, new List<int>() { 0, 5, 6, 11, 12, 17, 18, 19 }));
+                pattern.Add((2, new List<int>() { 1, 4, 7, 10, 13, 16 }));
+
+                bool foundSeaMonster = false;
+                while (!foundSeaMonster)
+                {
+                    var action = tileActions.Dequeue();
+                    action();
+
+                    for (int row = 0; row <= Tile.Size - 3; row++)
+                    {
+                        for (int chars = 0; chars <= Tile.Size - 20; chars++)
+                        {
+                            var found = new List<bool>();
+                            foreach (var p in pattern)
+                            {
+                                var tileRow = Tile.GetRow(row + p.rowIndex);
+                                var res = p.patternIndex.All(i => tileRow[chars + i] == '#');
+                                found.Add(res);
+                            }
+
+                            if (found.All(v => v == true))
+                            {
+                                foundSeaMonster = true;
+
+                                // replace with 0
+                                foreach (var p in pattern)
+                                {
+                                    var tileRow = Tile.GetRow(row + p.rowIndex);
+
+                                    char[] newRow = tileRow.ToCharArray();
+                                    p.patternIndex.ForEach(i => newRow[chars + i] = '0');
+                                    Tile.UpdateRow(row + p.rowIndex, new string(newRow));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            public int CountWaterRoughness()
+            {
+                var sum = 0;
+                foreach (var row in Tile.Data)
+                {
+                    sum += row.Count(r => r == '#');
+                }
+                return sum;
+            }
         }
 
         public class Image
@@ -206,19 +306,20 @@ namespace adventOfCode2020
                     var tileLeft = new Tile(id, tileInput);
                     AllTiles.Add(tileLeft);
                 }
-            }
 
-            public void ConstructImage()
-            {
                 // square tiles
                 var gridSize = (int)Math.Sqrt(AllTiles.Count());
 
+                // find connections
                 foreach (var tile in AllTiles)
                 {
                     tile.SetAdjacents(AllTiles);
                 }
-
-                var corners = AllTiles.Where(tile => tile.IsCorner);
+            }
+            public BigImage ConstructImage()
+            {
+                // // square tiles
+                var gridSize = (int)Math.Sqrt(AllTiles.Count());
 
                 // Get all edges and store each tile that belongs to that edge!
                 var tileByEdges = new Dictionary<string, List<Tile>>(
@@ -238,6 +339,7 @@ namespace adventOfCode2020
                         Tile tileToAdd;
                         if (col == 0 && row == 0)
                         {
+                            var corners = AllTiles.Where(tile => tile.IsCorner);
                             tileToAdd = corners.First();
                             while (!tileByEdges.ContainsKey(tileToAdd.GetEdgeString(Edge.Right)) || !tileByEdges.ContainsKey(tileToAdd.GetEdgeString(Edge.Bottom)))
                             {
@@ -246,49 +348,45 @@ namespace adventOfCode2020
                         }
                         else if (row == 0)
                         {
-                            tileToAdd = FindTileByDirection(tileByEdges, newImage, Edge.Right, Edge.Left, Edge.LeftReverse, row, col - 1);
+                            var lastTile = newImage[row, col - 1];
+                            var edgeToConnectTo = lastTile.GetEdgeString(Edge.Right);
+                            // get the tile by the edge that is not place
+                            tileToAdd = tileByEdges[edgeToConnectTo].FirstOrDefault(tile => !tile.IsPlacedOnGrid);
+                            while (tileToAdd.GetEdgeString(Edge.Left) != edgeToConnectTo && tileToAdd.GetEdgeString(Edge.LeftReverse) != edgeToConnectTo)
+                            {
+                                tileToAdd.Rotate();
+                            }
+                            // do we need to reverse?
+                            if (tileToAdd.GetEdgeString(Edge.Left) != edgeToConnectTo)
+                            {
+                                tileToAdd.FlipHorizontal();
+                            }
                         }
                         else
                         {
-                            tileToAdd = FindTileByDirection(tileByEdges, newImage, Edge.Bottom, Edge.Top, Edge.TopReverse, row - 1, col);
+                            var lastTile = newImage[row - 1, col];
+                            var edgeToConnectTo = lastTile.GetEdgeString(Edge.Bottom);
+                            // get the tile by the edge that is not place
+                            tileToAdd = tileByEdges[edgeToConnectTo].FirstOrDefault(tile => !tile.IsPlacedOnGrid);
+                            while (tileToAdd.GetEdgeString(Edge.Top) != edgeToConnectTo && tileToAdd.GetEdgeString(Edge.TopReverse) != edgeToConnectTo)
+                            {
+                                tileToAdd.Rotate();
+                            }
+                            // do we need to reverse?
+                            if (tileToAdd.GetEdgeString(Edge.Top) != edgeToConnectTo)
+                            {
+                                tileToAdd.FlipVertical();
+                            }
                         }
 
                         newImage[row, col] = tileToAdd;
                         tileToAdd.IsPlacedOnGrid = true;
-                        tileToAdd.Print();
                     }
                 }
 
-                for (int row = 0; row < gridSize; row++)
-                {
-                    for (int col = 0; col < gridSize; col++)
-                    {
-                        Console.Write(newImage[row, col].Id + " ");
-                    }
-                    Console.WriteLine();
-                }
+                var newBigImage = new BigImage(newImage, gridSize);
+                return newBigImage;
             }
-
-            private static Tile FindTileByDirection(Dictionary<string, List<Tile>> tileByEdges, Tile[,] newImage, Edge edgeConnectTo, Edge edgeNew, Edge edgeNewReverse, int row, int col)
-            {
-                Tile tileToAdd;
-                var lastTile = newImage[row, col];
-                var edgeToConnectTo = lastTile.GetEdgeString(edgeConnectTo);
-                // get the tile by the edge that is not place
-                tileToAdd = tileByEdges[edgeToConnectTo].FirstOrDefault(tile => !tile.IsPlacedOnGrid);
-                while (tileToAdd.GetEdgeString(edgeNew) != edgeToConnectTo && tileToAdd.GetEdgeString(edgeNewReverse) != edgeToConnectTo)
-                {
-                    tileToAdd.Rotate();
-                }
-                // do we need to reverse?
-                if (tileToAdd.GetEdgeString(edgeNew) != edgeToConnectTo)
-                {
-                    tileToAdd.FlipHorizontal();
-                }
-
-                return tileToAdd;
-            }
-
             public long FindCornerProduct()
             {
                 // Get all corners and the ids
@@ -327,14 +425,10 @@ namespace adventOfCode2020
             string filename = GetTestFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
             var image = new Image(input);
-            image.ConstructImage();
-
-            // foreach (var item in image.AllTiles)
-            // {
-            //     item.Print();
-            // }
-
-            bool testSucceeded = false;
+            var newImage = image.ConstructImage();
+            newImage.LookForSeaMonster();
+            var res = newImage.CountWaterRoughness();
+            bool testSucceeded = res == 273;
             return testSucceeded;
         }
 
@@ -342,7 +436,11 @@ namespace adventOfCode2020
         {
             string filename = GetFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            return "not implemented";
+            var image = new Image(input);
+            var newImage = image.ConstructImage();
+            newImage.LookForSeaMonster();
+            var res = newImage.CountWaterRoughness();
+            return res.ToString();
         }
     }
 }
