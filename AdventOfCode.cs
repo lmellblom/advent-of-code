@@ -6,6 +6,9 @@ using System.Reflection;
 
 namespace adventOfCode
 {
+    public record TestResult(bool succeded, object expected, object value) { }
+    public record Result(object value) { }
+
     public class CodeName : Attribute
     {
         public readonly string Name;
@@ -17,11 +20,10 @@ namespace adventOfCode
 
     public interface IAdventOfCode
     {
-        bool Test(List<string> input);
-        bool Test2(List<string> input);
-
-        object First(List<string> input);
-        object Second(List<string> input);
+        TestResult Test(List<string> input);
+        TestResult Test2(List<string> input);
+        Result First(List<string> input);
+        Result Second(List<string> input);
     }
 
     public static class AoCExtensions
@@ -49,7 +51,7 @@ namespace adventOfCode
         public static int Day(this IAdventOfCode aoc)
         {
             var t = aoc.GetType();
-            return int.Parse(t.FullName.Split('.')[2].Substring(3));
+            return int.Parse(t.FullName.Split('.')[2].Substring(1));
         }
 
         public static string WorkingDir(int year)
@@ -67,6 +69,16 @@ namespace adventOfCode
         public static string WorkingDir(this IAdventOfCode aoc)
         {
             return WorkingDir(aoc.Year(), aoc.Day());
+        }
+
+        public static bool HandleTest(object value, object expected)
+        {
+            if (value == expected)
+            {
+                return true;
+            }
+            Console.WriteLine($"Test failed.. Expected value: {expected}. Actual: {value}");
+            return false;
         }
 
         public static List<string> ReadInputFile(this IAdventOfCode aoc, bool testfile = false)

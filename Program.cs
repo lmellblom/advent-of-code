@@ -52,19 +52,35 @@ namespace adventOfCode
             }
 
             var index = arguments.FindIndex(a => a == prefix);
-            var value = arguments[index + 1];
-            return value;
+            if (index != -1)
+            {
+                var value = arguments[index + 1];
+                return value;
+            }
+
+            return "";
         }
 
         static void GenerateProblemAoC(string[] args)
         {
             var arguments = args.ToList();
-            var dayValue = GetArgument(arguments, "-d");
-            var yearValue = GetArgument(arguments, "-y");
+
+            var dayValue = DateTime.Today.Day;
+            if (HasFlag(arguments, "-d"))
+            {
+                dayValue = Int32.Parse(GetArgument(arguments, "-d"));
+            }
+
+            var yearValue = DateTime.Today.Year;
+            if (HasFlag(arguments, "-y"))
+            {
+                yearValue = Int32.Parse(GetArgument(arguments, "-y"));
+            }
+
             var nameValue = GetArgument(arguments, "-n");
 
             // check if file exists, if not create!
-            var problem = new Problem(nameValue, Int32.Parse(dayValue), Int32.Parse(yearValue));
+            var problem = new Problem(nameValue, dayValue, yearValue);
 
             var dir = AoCExtensions.WorkingDir(problem.Year, problem.Day);
 
@@ -115,23 +131,19 @@ namespace adventOfCode
             }
         }
 
-
         public static void Run(IAdventOfCode aoc)
         {
             var inputTest = aoc.ReadInputFile(true);
-            bool testResult1 = aoc.Test(inputTest);
-            bool testResult2 = aoc.Test2(inputTest);
+            var testResult1 = aoc.Test(inputTest);
+            var testResult2 = aoc.Test2(inputTest);
 
-            if (testResult1 && testResult2)
+            if (testResult1.succeded && testResult2.succeded)
             {
                 RunOnlyResult(aoc);
                 return;
             }
 
-            Console.WriteLine($"{aoc.GetName()}");
-            ConsoleHelper.WriteBreakLine();
-
-            ConsoleHelper.WriteHelloMessage(aoc.Day());
+            ConsoleHelper.WriteHelloMessage(aoc.Day(), aoc.GetName());
 
             // FIRST            
             ConsoleHelper.WriteTestResultMessage("Test1", testResult1);
@@ -139,24 +151,24 @@ namespace adventOfCode
 
             var input = aoc.ReadInputFile();
 
-            object result1 = aoc.First(input);
-            ConsoleHelper.WriteResultMessage("FIRST", result1.ToString());
+            var result1 = aoc.First(input);
+            ConsoleHelper.WriteResultMessage("FIRST", result1);
             ConsoleHelper.WriteBreakLine();
 
             // SECOND
             ConsoleHelper.WriteTestResultMessage("Test2", testResult2);
             ConsoleHelper.WriteBreakLine();
 
-            object result2 = aoc.Second(input);
-            ConsoleHelper.WriteResultMessage("SECOND", result2.ToString());
+            var result2 = aoc.Second(input);
+            ConsoleHelper.WriteResultMessage("SECOND", result2);
         }
 
         public static void RunOnlyResult(IAdventOfCode aoc)
         {
             var input = aoc.ReadInputFile();
-            var result1 = aoc.First(input).ToString();
-            var result2 = aoc.Second(input).ToString();
-            ConsoleHelper.WriteHelloMessageAndResult(aoc.Day(), result1, result2);
+            var result1 = aoc.First(input);
+            var result2 = aoc.Second(input);
+            ConsoleHelper.WriteHelloMessageAndResult(aoc.Day(), aoc.GetName(), result1, result2);
         }
 
         static void RunPuzzles()

@@ -17,24 +17,30 @@ namespace adventOfCode.Y{problem.Year}.D{problem.Day.ToString("00")}
     public class AoC : IAdventOfCode 
     {{
 
-        public object First(List<string> input) 
+        public Result First(List<string> input) 
         {{
-            return ""not implemented"";
+            return new Result(""not implemented"");
         }}
 
-        public object Second(List<string> input) 
+        public Result Second(List<string> input) 
         {{
-            return ""not implemented"";
+            return new Result(""not implemented"");
         }}
 
-        public bool Test(List<string> input) 
+        public TestResult Test(List<string> input) 
         {{
-            return false;
+            var value = ""-"";
+            var expected = """";
+            bool succeded = value == expected;
+            return new TestResult(succeded, expected, value);
         }}
 
-        public bool Test2(List<string> input) 
+        public TestResult Test2(List<string> input) 
         {{
-            return false;
+            var value = ""-"";
+            var expected = """";
+            bool succeded = value == expected;
+            return new TestResult(succeded, expected, value);
         }}
     }}
 }}";
