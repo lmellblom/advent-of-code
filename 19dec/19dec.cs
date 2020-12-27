@@ -34,8 +34,7 @@ namespace adventOfCode2020
                     {
                         var splittedInput = line.Split(":");
                         var rulestring = splittedInput[1].Trim();
-                        string mynumber = Regex.Replace(splittedInput[0], @"\D", "");
-                        int number = Int32.Parse(mynumber);
+                        int number = Int32.Parse(Regex.Replace(splittedInput[0], @"\D", ""));
 
                         if (rulestring.StartsWith("\""))
                         {
@@ -56,9 +55,7 @@ namespace adventOfCode2020
                         Messages.Add(line);
                     }
                 }
-
             }
-
             public void ReplaceRulePartTwo()
             {
                 // 8: 42 | 42 8
@@ -66,8 +63,8 @@ namespace adventOfCode2020
                 {
                     SubRules = new()
                     {
-                        new() {42},
-                        new() {42, 8}
+                        new() { 42 },
+                        new() { 42, 8 }
                     }
                 };
                 // 11: 42 31 | 42 11 31
@@ -75,29 +72,22 @@ namespace adventOfCode2020
                 {
                     SubRules = new()
                     {
-                        new() {42, 31},
-                        new() {42, 11, 31}
+                        new() { 42, 31 },
+                        new() { 42, 11, 31 }
                     }
                 };
             }
 
             public int CountValidMessagesFromRule0()
             {
-                int sum = 0;
-                foreach (var message in Messages)
-                {
-                    var potentialMessages = TraverseRule(0, AllRules, message);
-                    bool valid = potentialMessages.Contains(message);
-                    if (valid)
-                    {
-                        sum++;
-                    }
-                }
+                int sum = Messages
+                    .Select(m => GetPossibleMatches(0, AllRules, m).Contains(m))
+                    .Count(value => value == true);
                 return sum;
             }
 
             // https://www.kenneth-truyers.net/2016/05/12/yield-return-in-c/
-            public IEnumerable<string> TraverseRule(int ruleNr, IReadOnlyDictionary<int, Rule> rules, string message)
+            public IEnumerable<string> GetPossibleMatches(int ruleNr, IReadOnlyDictionary<int, Rule> rules, string message)
             {
                 var currRule = rules[ruleNr];
                 if (currRule.HasValue)
@@ -108,56 +98,45 @@ namespace adventOfCode2020
                 {
                     foreach (var rule in currRule.SubRules)
                     {
-                        if (rule.Count() == 1)
-                        {
-                            var possibleStrings = TraverseRule(rule[0], rules, message);
-                            foreach (var s in possibleStrings)
-                            {
-                                yield return s;
-                            }
-                        }
-                        else if (rule.Count() == 2)
-                        {
-                            var leftResult = TraverseRule(rule[0], rules, message);
-                            foreach (var left in leftResult)
-                            {
-                                // to end traversing if the rule does not contains in the message
-                                // if (!message.StartsWith(left))
-                                // {
-                                //     continue;
-                                // }
+                        var ruleLength = rule.Count();
 
-                                var rightResult = TraverseRule(rule[1], rules, message.Substring(0));
-                                foreach (var right in rightResult)
+                        var firstResult = GetPossibleMatches(rule[0], rules, message);
+                        foreach (var first in firstResult)
+                        {
+                            if (ruleLength == 1)
+                            {
+                                yield return first;
+                            }
+                            else
+                            {
+                                if (!message.StartsWith(first))
                                 {
-                                    yield return left + right;
+                                    // EXIT if the message no longer contains the possible values
+                                    continue;
                                 }
-                            }
-                        }
-                        else if (rule.Count() == 3)
-                        {
-                            var leftResult = TraverseRule(rule[0], rules, message);
-                            foreach (var left in leftResult)
-                            {
-                                // to end traversing if the rule does not contains in the message
-                                // if (!message.StartsWith(left))
-                                // {
-                                //     continue;
-                                // }
 
-                                var rightResult = TraverseRule(rule[1], rules, message.Substring(0));
-                                foreach (var right in rightResult)
+                                // only match the substring of the message that is left
+                                var secondResult = GetPossibleMatches(rule[1], rules, message.Substring(first.Length));
+                                foreach (var second in secondResult)
                                 {
-
-                                    // if (!message.StartsWith(left + right))
-                                    // {
-                                    //     continue;
-                                    // }
-
-                                    var rightRightResult = TraverseRule(rule[2], rules, message.Substring(0));
-                                    foreach (var rightRight in rightRightResult)
+                                    if (ruleLength == 2)
                                     {
-                                        yield return left + right + rightRight;
+                                        yield return first + second;
+                                    }
+                                    else
+                                    {
+                                        if (!message.StartsWith(first + second))
+                                        {
+                                            // EXIT if the message no longer contains the possible values
+                                            continue;
+                                        }
+
+                                        // only match the substring of the message that is left
+                                        var thirdResult = GetPossibleMatches(rule[2], rules, message.Substring(first.Length + second.Length));
+                                        foreach (var third in thirdResult)
+                                        {
+                                            yield return first + second + third;
+                                        }
                                     }
                                 }
                             }
