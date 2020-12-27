@@ -11,142 +11,17 @@ namespace adventOfCode2020
         {
         }
 
-        // Found this.. not smart enough to come up with this. MOVE to helper class
-        public static List<string> GetAllPossibleCombos(List<List<string>> strings)
-        {
-            IEnumerable<string> combos = new[] { "" };
-            foreach (var inner in strings)
-            {
-                combos = combos.SelectMany(r => inner.Select(x => r + x));
-            }
-            return combos.ToList();
-        }
-
-        public class Rule
-        {
-            public string Value;
-            public int Index;
-            public List<List<int>> RulesReferences = new List<List<int>>();
-            public Rule(string input, int index)
-            {
-                Index = index;
-                if (input.StartsWith("\""))
-                {
-                    Value = input.Replace("\"", "");
-                }
-                else
-                {
-                    var rules = input.Split("|");
-                    foreach (var item in rules)
-                    {
-                        var intRules = item.Trim().Split(" ").Select(Int32.Parse).ToList();
-                        RulesReferences.Add(intRules);
-                    }
-                }
-            }
-        }
-
-        public class MessageRules
-        {
-            Dictionary<int, Rule> Rules = new Dictionary<int, Rule>();
-            public MessageRules()
-            {
-
-            }
-            public void AddRule(string input)
-            {
-                var rules = CreateRule(input);
-                Rules.Add(rules.Index, rules);
-            }
-
-            public void ReplaceRule(string input)
-            {
-                var rules = CreateRule(input);
-                Rules[rules.Index] = rules;
-            }
-
-            private Rule CreateRule(string input)
-            {
-                var splittedInput = input.Split(":");
-                var rulestring = splittedInput[1].Trim();
-
-                string mynumber = Regex.Replace(splittedInput[0], @"\D", "");
-                int number = Int32.Parse(mynumber);
-
-                // split the rulstring on rulestring
-                var rules = new Rule(rulestring, number);
-                return rules;
-            }
-
-            public Dictionary<string, List<string>> Memory = new Dictionary<string, List<string>>();
-
-            public List<string> TraverseRules(Rule startRule)
-            {
-                int subRulesCount = startRule.RulesReferences.Count();
-                if (subRulesCount == 0)
-                {
-                    var values = new List<string>() { startRule.Value };
-                    string memoryIndex = startRule.Index.ToString();
-                    Memory.Add(memoryIndex, values);
-                    return values;
-                }
-
-                var output = new List<string>();
-                foreach (var subRules in startRule.RulesReferences)
-                {
-                    var allResults = new List<List<string>>();
-                    foreach (var ruleInt in subRules)
-                    {
-                        // check if exists in memory?
-                        string memoryIndex = ruleInt.ToString();
-                        List<string> result;
-                        if (Memory.ContainsKey(memoryIndex))
-                        {
-                            result = Memory[memoryIndex];
-                        }
-                        else
-                        {
-                            // check infinite looop? 
-                            if (ruleInt == startRule.Index)
-                            {
-                                Console.WriteLine("INFINITE LOOP! how to fix?");
-                                continue; // WHAT TO ADD HERE???
-                            }
-                            else
-                            {
-                                var rule = Rules[ruleInt];
-                                result = TraverseRules(rule);
-                                if (!Memory.ContainsKey(memoryIndex))
-                                {
-                                    Memory.Add(memoryIndex, result);
-                                }
-                            }
-                        }
-                        allResults.Add(result);
-                    }
-
-                    var allCombos = GetAllPossibleCombos(allResults);
-                    output = output.Concat(allCombos).ToList();
-                }
-                return output;
-            }
-
-            public List<string> ValidValuesFromIndex(int index)
-            {
-                var currentRule = Rules[index];
-                var strings = TraverseRules(currentRule);
-                return strings;
-            }
-        }
-
         public class MonsterMessages
         {
-            public MessageRules Rules;
-            public List<string> Messages = new List<string>();
+            public List<string> Messages { get; set; }
+            public Dictionary<int, Rule> AllRules { get; set; }
             public MonsterMessages(List<string> input)
             {
+                Messages = new List<string>();
+                AllRules = new Dictionary<int, Rule>();
+
+                // process input
                 bool readingRules = true;
-                Rules = new MessageRules();
                 foreach (var line in input)
                 {
                     if (String.IsNullOrWhiteSpace(line))
@@ -157,33 +32,138 @@ namespace adventOfCode2020
 
                     if (readingRules)
                     {
-                        Rules.AddRule(line);
+                        var splittedInput = line.Split(":");
+                        var rulestring = splittedInput[1].Trim();
+                        string mynumber = Regex.Replace(splittedInput[0], @"\D", "");
+                        int number = Int32.Parse(mynumber);
+
+                        if (rulestring.StartsWith("\""))
+                        {
+                            var value = rulestring.Replace("\"", "");
+                            AllRules.Add(number, new Rule { Value = value });
+                        }
+                        else
+                        {
+                            var rulesString = rulestring.Split("|");
+                            var rules = rulesString
+                                .Select(rule => rule.Trim().Split(" ").Select(Int32.Parse).ToList())
+                                .ToList();
+                            AllRules.Add(number, new Rule { SubRules = rules });
+                        }
                     }
                     else
                     {
                         Messages.Add(line);
                     }
                 }
+
             }
 
-            public void ReplaceRule(string value)
+            public void ReplaceRulePartTwo()
             {
-                Rules.ReplaceRule(value);
+                // 8: 42 | 42 8
+                AllRules[8] = new Rule
+                {
+                    SubRules = new()
+                    {
+                        new() {42},
+                        new() {42, 8}
+                    }
+                };
+                // 11: 42 31 | 42 11 31
+                AllRules[11] = new Rule
+                {
+                    SubRules = new()
+                    {
+                        new() {42, 31},
+                        new() {42, 11, 31}
+                    }
+                };
             }
 
             public int CountValidMessagesFromRule0()
             {
-                Rules.Memory = new Dictionary<string, List<string>>();
-                var rules = Rules.ValidValuesFromIndex(0);
                 int sum = 0;
                 foreach (var message in Messages)
                 {
-                    if (rules.Contains(message))
+                    var potentialMessages = TraverseRule(0, AllRules, message);
+                    bool valid = potentialMessages.Contains(message);
+                    if (valid)
                     {
                         sum++;
                     }
                 }
                 return sum;
+            }
+
+            // https://www.kenneth-truyers.net/2016/05/12/yield-return-in-c/
+            public IEnumerable<string> TraverseRule(int ruleNr, IReadOnlyDictionary<int, Rule> rules, string message)
+            {
+                var currRule = rules[ruleNr];
+                if (currRule.HasValue)
+                {
+                    yield return currRule.Value;
+                }
+                else
+                {
+                    foreach (var rule in currRule.SubRules)
+                    {
+                        if (rule.Count() == 1)
+                        {
+                            var possibleStrings = TraverseRule(rule[0], rules, message);
+                            foreach (var s in possibleStrings)
+                            {
+                                yield return s;
+                            }
+                        }
+                        else if (rule.Count() == 2)
+                        {
+                            var leftResult = TraverseRule(rule[0], rules, message);
+                            foreach (var left in leftResult)
+                            {
+                                // to end traversing if the rule does not contains in the message
+                                // if (!message.StartsWith(left))
+                                // {
+                                //     continue;
+                                // }
+
+                                var rightResult = TraverseRule(rule[1], rules, message.Substring(0));
+                                foreach (var right in rightResult)
+                                {
+                                    yield return left + right;
+                                }
+                            }
+                        }
+                        else if (rule.Count() == 3)
+                        {
+                            var leftResult = TraverseRule(rule[0], rules, message);
+                            foreach (var left in leftResult)
+                            {
+                                // to end traversing if the rule does not contains in the message
+                                // if (!message.StartsWith(left))
+                                // {
+                                //     continue;
+                                // }
+
+                                var rightResult = TraverseRule(rule[1], rules, message.Substring(0));
+                                foreach (var right in rightResult)
+                                {
+
+                                    // if (!message.StartsWith(left + right))
+                                    // {
+                                    //     continue;
+                                    // }
+
+                                    var rightRightResult = TraverseRule(rule[2], rules, message.Substring(0));
+                                    foreach (var rightRight in rightRightResult)
+                                    {
+                                        yield return left + right + rightRight;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -211,14 +191,9 @@ namespace adventOfCode2020
             string filename = GetTestFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
             var messages = new MonsterMessages(input);
+            messages.ReplaceRulePartTwo();
             int sum = messages.CountValidMessagesFromRule0();
-
-            // replace rules
-            //messages.ReplaceRule("8: 42 | 42 8");
-            //messages.ReplaceRule("11: 42 31 | 42 11 31");
-
-            int sum2 = messages.CountValidMessagesFromRule0();
-            bool testSucceeded = sum2 == 12;
+            bool testSucceeded = sum == 12;
             return testSucceeded;
         }
 
@@ -226,7 +201,19 @@ namespace adventOfCode2020
         {
             string filename = GetFilename();
             List<string> input = System.IO.File.ReadAllLines(filename).ToList();
-            return "not implemented";
+            var messages = new MonsterMessages(input);
+            messages.ReplaceRulePartTwo();
+            int sum = messages.CountValidMessagesFromRule0();
+            return sum.ToString();
+        }
+
+        public record Rule
+        {
+            public List<List<int>> SubRules { get; init; }
+
+            public string Value { get; init; }
+
+            public bool HasValue => !string.IsNullOrWhiteSpace(Value);
         }
     }
 }
