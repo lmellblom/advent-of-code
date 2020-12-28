@@ -125,10 +125,23 @@ namespace adventOfCode
                 .Select(t => Activator.CreateInstance(t) as IAdventOfCode)
                 .ToArray();
 
-            foreach (var item in allProblems)
+            if (HasFlag(arguments, "-d"))
             {
-                Run(item);
+                int day = Int32.Parse(dayValue);
+                var problemDay = allProblems.FirstOrDefault(p => p.Day() == day);
+                if (problemDay != null)
+                {
+                    Run(problemDay);
+                }
             }
+            else
+            {
+                foreach (var item in allProblems)
+                {
+                    Run(item);
+                }
+            }
+
         }
 
         public static void Run(IAdventOfCode aoc)
@@ -140,6 +153,7 @@ namespace adventOfCode
             if (testResult1.succeded && testResult2.succeded)
             {
                 RunOnlyResult(aoc);
+
                 return;
             }
 
@@ -168,6 +182,9 @@ namespace adventOfCode
             var input = aoc.ReadInputFile();
             var result1 = aoc.First(input);
             var result2 = aoc.Second(input);
+
+            // save the ansers to a file?
+
             ConsoleHelper.WriteHelloMessageAndResult(aoc.Day(), aoc.GetName(), result1, result2);
         }
 

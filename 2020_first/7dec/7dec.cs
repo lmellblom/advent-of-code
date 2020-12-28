@@ -57,7 +57,7 @@ namespace adventOfCode
 
         public override string First()
         {
-           string fileName = GetFilename();
+            string fileName = GetFilename();
             BuildBagTree(fileName);
             int sum = HowManyBagsIncludesDesiredColor();
             return sum.ToString();
