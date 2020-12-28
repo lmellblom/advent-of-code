@@ -113,7 +113,12 @@ namespace adventOfCode
             // maybe certain arguments etc...
             var arguments = args.ToList();
             var dayValue = GetArgument(arguments, "-d");
-            var yearValue = GetArgument(arguments, "-y");
+
+            var yearValue = DateTime.Today.Year;
+            if (HasFlag(arguments, "-y"))
+            {
+                yearValue = Int32.Parse(GetArgument(arguments, "-y"));
+            }
 
             // get all IAdventOfCode
             var allClasses = Assembly.GetEntryAssembly().GetTypes()
@@ -123,6 +128,7 @@ namespace adventOfCode
 
             var allProblems = allClasses
                 .Select(t => Activator.CreateInstance(t) as IAdventOfCode)
+                .Where(p => p.Year() == yearValue)
                 .ToArray();
 
             if (HasFlag(arguments, "-d"))
