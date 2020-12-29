@@ -71,16 +71,6 @@ namespace adventOfCode
             return WorkingDir(aoc.Year(), aoc.Day());
         }
 
-        public static bool HandleTest(object value, object expected)
-        {
-            if (value == expected)
-            {
-                return true;
-            }
-            Console.WriteLine($"Test failed.. Expected value: {expected}. Actual: {value}");
-            return false;
-        }
-
         public static List<string> ReadInputFile(this IAdventOfCode aoc, bool testfile = false)
         {
             var dir = aoc.WorkingDir();

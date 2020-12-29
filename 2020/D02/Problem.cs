@@ -52,10 +52,8 @@ namespace adventOfCode.Y2020.D02
         private PasswordValidator ConvertLineToPassword(string input)
         {
             // split the password
-            input = input.Replace(":", "");
-            string[] splitInput = input.Split(" ");
-            string bound = splitInput[0];
-            List<int> bounds = bound.Split("-").Select(Int32.Parse).ToList();
+            string[] splitInput = input.Replace(":", "").Split(" ");
+            List<int> bounds = splitInput[0].Split("-").Select(Int32.Parse).ToList();
             string letter = splitInput[1];
             string password = splitInput[2];
             return new PasswordValidator(bounds.First(), bounds.Last(), char.Parse(letter), password);

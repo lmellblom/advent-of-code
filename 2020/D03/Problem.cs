@@ -47,12 +47,12 @@ namespace adventOfCode.Y2020.D03
             // until the end
             rowIndex += traverse.down;
             colIndex += traverse.right;
-            while (rowIndex < input.Count())
+            while (rowIndex < input.Length)
             {
                 var row = input[rowIndex]; // all letters
-                if (colIndex >= row.Count())
+                if (colIndex >= row.Length)
                 {
-                    colIndex -= row.Count();
+                    colIndex -= row.Length;
                 }
                 var letter = row[colIndex];
                 foundTrees += (letter == isTree) ? 1 : 0;
