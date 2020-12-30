@@ -11,13 +11,6 @@ namespace adventOfCode
         {
         }
 
-        private static int ManhattanDistance(int x1, int x2, int y1, int y2)
-        {
-            var sum1 = x1 > x2 ? x1 - x2 : x2 - x1;
-            var sum2 = y1 > y2 ? y1 - y2 : y2 - y1;
-            return Math.Abs(sum1) + Math.Abs(sum2);
-        }
-
         public class Position
         {
             public int Facing { get; set; }
@@ -158,7 +151,7 @@ namespace adventOfCode
 
             public int ManhattanDistance(Position pos)
             {
-                var res = December12.ManhattanDistance(pos.East, pos.West, pos.South, pos.North);
+                var res = Helpers.ManhattanDistance(pos.East, pos.West, pos.South, pos.North);
                 return res;
             }
 
