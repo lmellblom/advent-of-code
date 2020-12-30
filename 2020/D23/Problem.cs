@@ -6,7 +6,7 @@ using System.Text;
 namespace adventOfCode.Y2020.D23 
 {
     [CodeName("Crab Cups")]      
-    public class AoC : IAdventOfCode 
+    public class AoC : IAdventOfCodeWithTest 
     {
 
         public Result First(List<string> input) 

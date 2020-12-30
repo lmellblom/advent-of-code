@@ -20,10 +20,14 @@ namespace adventOfCode
 
     public interface IAdventOfCode
     {
-        TestResult Test(List<string> input);
-        TestResult Test2(List<string> input);
         Result First(List<string> input);
         Result Second(List<string> input);
+    }
+
+    public interface IAdventOfCodeWithTest: IAdventOfCode
+    {
+        TestResult Test(List<string> input);
+        TestResult Test2(List<string> input);
     }
 
     public static class AoCExtensions

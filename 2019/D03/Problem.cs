@@ -49,22 +49,6 @@ namespace adventOfCode.Y2019.D03
             return new Result(lowest);
         }
 
-        public TestResult Test(List<string> input)
-        {
-            var value = "-";
-            var expected = "-";
-            bool succeded = value == expected;
-            return new TestResult(succeded, expected, value);
-        }
-
-        public TestResult Test2(List<string> input)
-        {
-            var value = "-";
-            var expected = "-";
-            bool succeded = value == expected;
-            return new TestResult(succeded, expected, value);
-        }
-
         private Dictionary<(int row, int col), int> Traverse(string path)
         {
             var wirePath = new Dictionary<(int row, int col), int>();

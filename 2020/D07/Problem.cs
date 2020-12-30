@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 namespace adventOfCode.Y2020.D07
 {
     [CodeName("Handy Haversacks")]
-    public class AoC : IAdventOfCode
+    public class AoC : IAdventOfCodeWithTest
     {
         public Dictionary<string, List<(int number, string bagColor)>> BagTree { get; set; }
         public static string BAG_COLOR_TO_FIND = "shiny gold";

@@ -6,7 +6,7 @@ using System.Text;
 namespace adventOfCode.Y2020.D17 
 {
     [CodeName("Conway Cubes")]      
-    public class AoC : IAdventOfCode 
+    public class AoC : IAdventOfCodeWithTest 
     {
 
         public Result First(List<string> input) 

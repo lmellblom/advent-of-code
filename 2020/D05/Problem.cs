@@ -6,7 +6,7 @@ using System.Text;
 namespace adventOfCode.Y2020.D05
 {
     [CodeName("Binary Boarding")]
-    public class AoC : IAdventOfCode
+    public class AoC : IAdventOfCodeWithTest
     {
         public static int HIGHEST_ROW_ID = 127;
         public static int HIGHEST_COL_ID = 7;

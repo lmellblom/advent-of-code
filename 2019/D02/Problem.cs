@@ -25,23 +25,6 @@ namespace adventOfCode.Y2019.D02
             return new Result(res);
         }
 
-        public TestResult Test(List<string> input)
-        {
-            // not implemented
-            var value = "-";
-            var expected = "-";
-            bool succeded = value == expected;
-            return new TestResult(succeded, expected, value);
-        }
-
-        public TestResult Test2(List<string> input)
-        {
-            // not implemented
-            var value = "-";
-            var expected = "-";
-            bool succeded = value == expected;
-            return new TestResult(succeded, expected, value);
-        }
 
         private int RunProgram(List<int> input)
         {

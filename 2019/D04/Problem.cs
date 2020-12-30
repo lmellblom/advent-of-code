@@ -22,22 +22,6 @@ namespace adventOfCode.Y2019.D04
             return new Result(result);
         }
 
-        public TestResult Test(List<string> input)
-        {
-            var value = "-";
-            var expected = "-";
-            bool succeded = value == expected;
-            return new TestResult(succeded, expected, value);
-        }
-
-        public TestResult Test2(List<string> input)
-        {
-            var value = "-";
-            var expected = "-";
-            bool succeded = value == expected;
-            return new TestResult(succeded, expected, value);
-        }
-
         private int ValidPasswords(int start, int end, bool partOfLargerGroup = false)
         {
             var validPasswords = Enumerable

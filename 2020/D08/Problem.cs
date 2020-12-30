@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 namespace adventOfCode.Y2020.D08
 {
     [CodeName("Handheld Halting")]
-    public class AoC : IAdventOfCode
+    public class AoC : IAdventOfCodeWithTest
     {
         public Result First(List<string> input)
         {

@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 namespace adventOfCode.Y2020.D04
 {
     [CodeName("Passport Processing")]
-    public class AoC : IAdventOfCode
+    public class AoC : IAdventOfCodeWithTest
     {
 
         public Result First(List<string> input)

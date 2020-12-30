@@ -6,7 +6,7 @@ using System.Text;
 namespace adventOfCode.Y2020.D01
 {
     [CodeName("Report Repair")]
-    public class AoC : IAdventOfCode
+    public class AoC : IAdventOfCodeWithTest
     {
         protected const int FOUND_NUMBER = 2020;
 

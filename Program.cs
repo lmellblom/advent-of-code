@@ -11,9 +11,10 @@ namespace adventOfCode
     {
         static void Main(string[] args)
         {
-            bool debug = false;
+            bool debug = true;
             if (debug)
             {
+                RunProblems(args);
                 // maybe run a specific function here to be able to debug nicely
                 return;
             }
@@ -77,6 +78,12 @@ namespace adventOfCode
                 yearValue = Int32.Parse(GetArgument(arguments, "-y"));
             }
 
+            var useTest = true;
+            if (HasFlag(arguments, "-nt")) // no test
+            {
+                useTest = false;
+            }
+
             var nameValue = GetArgument(arguments, "-n");
 
             // check if file exists, if not create!
@@ -92,7 +99,8 @@ namespace adventOfCode
             var file = Path.Combine(dir, "Problem.cs");
             if (!File.Exists(file))
             {
-                FileHelper.WriteFile(file, TemplateAoCGenerator.Generate(problem));
+                var template = useTest ? TemplateAoCGenerator.GenerateWithTest(problem) : TemplateAoCGenerator.Generate(problem);
+                FileHelper.WriteFile(file, template);
             }
 
             // generate input-files with empty stuff
@@ -101,10 +109,14 @@ namespace adventOfCode
             {
                 FileHelper.WriteFile(inputFile, "");
             }
-            var inputTestFile = Path.Combine(dir, "input_test.txt");
-            if (!File.Exists(inputTestFile))
+
+            if (useTest)
             {
-                FileHelper.WriteFile(inputTestFile, "");
+                var inputTestFile = Path.Combine(dir, "input_test.txt");
+                if (!File.Exists(inputTestFile))
+                {
+                    FileHelper.WriteFile(inputTestFile, "");
+                }
             }
         }
 
@@ -124,42 +136,51 @@ namespace adventOfCode
             var allClasses = Assembly.GetEntryAssembly().GetTypes()
                 .Where(t => t.IsClass && typeof(IAdventOfCode).IsAssignableFrom(t))
                 .OrderBy(t => t.FullName)
+                .Select(t => (t, typeof(IAdventOfCodeWithTest).IsAssignableFrom(t)))
                 .ToArray();
 
             var allProblems = allClasses
-                .Select(t => Activator.CreateInstance(t) as IAdventOfCode)
-                .Where(p => p.Year() == yearValue)
+                .Select(t => (Activator.CreateInstance(t.t) as IAdventOfCode, t.Item2))
+                .Where(p => p.Item1.Year() == yearValue)
                 .ToArray();
 
             if (HasFlag(arguments, "-d"))
             {
                 int day = Int32.Parse(dayValue);
-                var problemDay = allProblems.FirstOrDefault(p => p.Day() == day);
-                if (problemDay != null)
+                var problemDay = allProblems.FirstOrDefault(p => p.Item1.Day() == day);
+                if (problemDay.Item1 != null)
                 {
-                    Run(problemDay);
+                    Run(problemDay.Item1, problemDay.Item2);
                 }
             }
             else
             {
                 foreach (var item in allProblems)
                 {
-                    Run(item);
+                    Run(item.Item1, item.Item2);
                 }
             }
 
         }
 
-        public static void Run(IAdventOfCode aoc)
+        public static void Run(IAdventOfCode aocIn, bool test)
         {
+            if (!test) 
+            {
+                RunOnlyResult(aocIn);
+                return;
+            }
+
+            var aoc = aocIn as IAdventOfCodeWithTest;
+
             var inputTest = aoc.ReadInputFile(true);
+
             var testResult1 = aoc.Test(inputTest);
             var testResult2 = aoc.Test2(inputTest);
 
             if (testResult1.succeded && testResult2.succeded)
             {
                 RunOnlyResult(aoc);
-
                 return;
             }
 
@@ -169,9 +190,9 @@ namespace adventOfCode
             ConsoleHelper.WriteTestResultMessage("Test1", testResult1);
             ConsoleHelper.WriteBreakLine();
 
-            var input = aoc.ReadInputFile();
+            var inputOrg = aoc.ReadInputFile();
 
-            var result1 = aoc.First(input);
+            var result1 = aoc.First(inputOrg);
             ConsoleHelper.WriteResultMessage("FIRST", result1);
             ConsoleHelper.WriteBreakLine();
 
@@ -179,7 +200,7 @@ namespace adventOfCode
             ConsoleHelper.WriteTestResultMessage("Test2", testResult2);
             ConsoleHelper.WriteBreakLine();
 
-            var result2 = aoc.Second(input);
+            var result2 = aoc.Second(inputOrg);
             ConsoleHelper.WriteResultMessage("SECOND", result2);
         }
 
@@ -189,7 +210,14 @@ namespace adventOfCode
             var result1 = aoc.First(input);
             var result2 = aoc.Second(input);
 
-            // save the ansers to a file?
+            ConsoleHelper.WriteHelloMessageAndResult(aoc.Day(), aoc.GetName(), result1, result2);
+        }
+
+        public static void Run(IAdventOfCode aoc)
+        {
+            var input = aoc.ReadInputFile();
+            var result1 = aoc.First(input);
+            var result2 = aoc.Second(input);
 
             ConsoleHelper.WriteHelloMessageAndResult(aoc.Day(), aoc.GetName(), result1, result2);
         }
