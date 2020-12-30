@@ -14,9 +14,13 @@ namespace adventOfCode
             bool debug = true;
             if (debug)
             {
-                RunProblems(args);
+                args = new List<string>()
+                {
+                    "-d", "5", "-y", "2019"
+                }.ToArray();
+                // RunProblems(args2.ToArray());
                 // maybe run a specific function here to be able to debug nicely
-                return;
+                // return;
             }
 
             var action = GetArgument(args.ToList(), "-a");
@@ -79,7 +83,7 @@ namespace adventOfCode
             }
 
             var useTest = true;
-            if (HasFlag(arguments, "-nt")) // no test
+            if (HasFlag(arguments, "-t")) // no test
             {
                 useTest = false;
             }
@@ -165,7 +169,7 @@ namespace adventOfCode
 
         public static void Run(IAdventOfCode aocIn, bool test)
         {
-            if (!test) 
+            if (!test)
             {
                 RunOnlyResult(aocIn);
                 return;

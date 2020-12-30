@@ -20,5 +20,10 @@ namespace adventOfCode
         {
             return Math.Abs(x1) + Math.Abs(x2);
         }
+
+        public static int NthNumber(int number, int nth)
+        {
+            return number / (int)Math.Pow(10, nth - 1) % 10;
+        }
     }
 }

@@ -84,6 +84,7 @@ namespace adventOfCode
             {
                 return System.IO.File.ReadAllLines(path).ToList();
             }
+            Console.WriteLine($"WARNING: file not found.. {path}");
             return new List<string>();
         }
     }
