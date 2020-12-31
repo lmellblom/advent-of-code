@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using static adventOfCode.TemplateAoCGenerator;
 
 namespace adventOfCode
@@ -11,16 +13,22 @@ namespace adventOfCode
     {
         static void Main(string[] args)
         {
-            bool debug = true;
+            // REALLY IMPORTANT!!! cannot parse negative number when running in the console otherwise..
+            Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+
+            bool debug = false;
             if (debug)
             {
-                args = new List<string>()
+                // var runthis = new December20();
+                // runthis.Second();
+                // return;
+                var args2 = new List<string>()
                 {
                     "-d", "5", "-y", "2019"
                 }.ToArray();
-                // RunProblems(args2.ToArray());
+                RunProblems(args2.ToArray());
                 // maybe run a specific function here to be able to debug nicely
-                // return;
+                return;
             }
 
             var action = GetArgument(args.ToList(), "-a");
