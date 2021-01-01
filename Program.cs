@@ -19,15 +19,11 @@ namespace adventOfCode
             bool debug = false;
             if (debug)
             {
-                // var runthis = new December20();
-                // runthis.Second();
-                // return;
                 var args2 = new List<string>()
                 {
-                    "-d", "5", "-y", "2019"
+                    "-d", "6", "-y", "2019"
                 }.ToArray();
                 RunProblems(args2.ToArray());
-                // maybe run a specific function here to be able to debug nicely
                 return;
             }
 
