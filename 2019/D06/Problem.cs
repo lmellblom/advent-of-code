@@ -27,7 +27,7 @@ namespace adventOfCode.Y2019.D06
         {
             var orbit = new Orbit(input);
             var value = orbit.CountOrbits();
-            var expected = 42;
+            var expected = 54;
             bool succeded = value == expected;
             return new TestResult(succeded, expected, value);
         }
