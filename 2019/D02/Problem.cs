@@ -23,7 +23,7 @@ namespace adventOfCode.Y2019.D02
             var computer = new IntCodeComputer(ints);
             computer.Run();
 
-            return new Result(computer.Memory[0]);
+            return new Result(computer.Values[0]);
         }
 
         public Result Second(List<string> input)
@@ -47,10 +47,10 @@ namespace adventOfCode.Y2019.D02
                 for (var verb = 0; verb < 100; verb++)
                 {
                     computer.Reset();
-                    computer.Memory[1] = noun;
-                    computer.Memory[2] = verb;
+                    computer.Values[1] = noun;
+                    computer.Values[2] = verb;
                     computer.Run();
-                    if (computer.Memory[0] == 19690720)
+                    if (computer.Values[0] == 19690720)
                     {
                         return 100 * noun + verb;
                     }

@@ -21,9 +21,31 @@ namespace adventOfCode
             return Math.Abs(x1) + Math.Abs(x2);
         }
 
-        public static int NthNumber(int number, int nth)
+        public static List<T[]> GetPermutations<T>(List<T> list)
         {
-            return number / (int)Math.Pow(10, nth - 1) % 10;
+            int x = list.Count() - 1;
+            return GetPer(list.ToArray(), 0, x).ToList();
+        }
+
+        private static IEnumerable<T[]> GetPer<T>(T[] list, int k, int m)
+        {
+            if (k == m)
+            {
+                yield return list.ToArray();
+            }
+            else
+            {
+                for (int i = k; i <= m; i++)
+                {
+                    (list[k], list[i]) = (list[i], list[k]);
+                    var values = GetPer(list, k + 1, m).ToList();
+                    foreach (var item in values)
+                    {
+                        yield return item;
+                    }
+                    (list[k], list[i]) = (list[i], list[k]);
+                }
+            }
         }
     }
 }
