@@ -21,7 +21,7 @@ namespace adventOfCode
             {
                 var args2 = new List<string>()
                 {
-                    "-d", "6", "-y", "2019"
+                    "-d", "11", "-y", "2019"
                 }.ToArray();
                 RunProblems(args2.ToArray());
                 return;

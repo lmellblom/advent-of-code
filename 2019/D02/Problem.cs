@@ -11,10 +11,10 @@ namespace adventOfCode.Y2019.D02
 
         public Result First(List<string> input)
         {
-            var ints = input
+            List<long> ints = input
                  .First()
                  .Split(',')
-                 .Select(Int32.Parse)
+                 .Select(long.Parse)
                  .ToList();
 
             ints[1] = 12;
@@ -31,16 +31,17 @@ namespace adventOfCode.Y2019.D02
             var ints = input
                .First()
                .Split(',')
-               .Select(Int32.Parse)
+               .Select(long.Parse)
                .ToList();
 
             var res = FindNounAndVerb(ints);
             return new Result(res);
         }
 
-        private int FindNounAndVerb(List<int> input)
+        private int FindNounAndVerb(List<long> input)
         {
             var computer = new IntCodeComputer(input);
+            
 
             for (var noun = 0; noun < 100; noun++)
             {

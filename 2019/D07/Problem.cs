@@ -44,7 +44,7 @@ namespace adventOfCode.Y2019.D07
             var ints = input
                 .First()
                 .Split(',')
-                .Select(Int32.Parse)
+                .Select(long.Parse)
                 .ToList();
 
             var amplifiers = Enumerable.Range(0, phases.Count()).Select(x => new IntCodeComputer(ints)).ToArray();

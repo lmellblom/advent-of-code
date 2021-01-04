@@ -14,7 +14,7 @@ namespace adventOfCode.Y2019.D09
             var ints = input
                 .First()
                 .Split(',')
-                .Select(Int32.Parse)
+                .Select(long.Parse)
                 .ToList();
 
             var computer = new IntCodeComputer(ints);
@@ -28,7 +28,7 @@ namespace adventOfCode.Y2019.D09
              var ints = input
                 .First()
                 .Split(',')
-                .Select(Int32.Parse)
+                .Select(long.Parse)
                 .ToList();
 
             var computer = new IntCodeComputer(ints);

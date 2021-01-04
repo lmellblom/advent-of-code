@@ -7,7 +7,7 @@ namespace adventOfCode.Y2019
     public class Memory
     {
         public Dictionary<long, long> Values { get; set; }
-        private List<int> _inital { get; set; }
+        private List<long> _inital { get; set; }
 
         public long this[long position]
         {
@@ -22,10 +22,10 @@ namespace adventOfCode.Y2019
             }
         }
 
-        public Memory(List<int> instructions)
+        public Memory(List<long> instructions)
         {
             Values = new Dictionary<long, long>(
-                instructions.Select((int v, int index) => new KeyValuePair<long, long>(index, v)));
+                instructions.Select((long v, int index) => new KeyValuePair<long, long>(index, v)));
 
             _inital = instructions;
         }
@@ -33,7 +33,7 @@ namespace adventOfCode.Y2019
         public void Reset()
         {
             Values = new Dictionary<long, long>(
-                _inital.Select((int v, int index) => new KeyValuePair<long, long>(index, v)));
+                _inital.Select((long v, int index) => new KeyValuePair<long, long>(index, v)));
         }
     }
 
@@ -60,7 +60,7 @@ namespace adventOfCode.Y2019
             Halt = 99
         }
 
-        public IntCodeComputer(List<int> instructions)
+        public IntCodeComputer(List<long> instructions)
         {
             Memory = new Memory(instructions);
             Input = new Queue<long>();
