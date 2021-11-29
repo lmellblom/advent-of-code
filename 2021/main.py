@@ -11,52 +11,51 @@ def getDaysList():
     return days
 
 class MainAoC:
-    daysClasses = []
+    daysToSelect = []
     selectedDay = 1
+    height = 400
+    width = 700
 
     @staticmethod
     def initGame():
         pygame.init()
-        surface = pygame.display.set_mode((600, 400))
-        MainAoC.daysClasses = getDaysList()
+        surface = pygame.display.set_mode((MainAoC.width, MainAoC.height))
+        MainAoC.daysToSelect = getDaysList()
 
-        menu = pygame_menu.Menu('AdventOfCode', 400, 300,
+        menu = pygame_menu.Menu('AdventOfCode', MainAoC.width, MainAoC.height,
                        theme=pygame_menu.themes.THEME_SOLARIZED)
 
         days = []
-        for x in MainAoC.daysClasses:
+        for x in MainAoC.daysToSelect:
             obj = (x.codeName, x.day)
             days.append(obj)
 
-        menu.add.selector('Dag :', days, onchange=MainAoC.selectDay)
-
-        menu.add.button('Play', MainAoC.start_the_game)
-        menu.add.button('Quit', pygame_menu.events.EXIT)
+        menu.add.selector('Välj problem :', days, onchange=MainAoC.selectDay)
+        menu.add.button('KÖR', MainAoC.start_the_game)
+        menu.add.button('Avsluta', pygame_menu.events.EXIT)
 
         menu.mainloop(surface)
 
         submenu_theme = pygame_menu.themes.THEME_DEFAULT.copy()
         submenu_theme.widget_font_size = 15
         play_submenu = pygame_menu.Menu(
-            height=WINDOW_SIZE[1] * 0.5,
+            height=MainAoC.height,
             theme=submenu_theme,
             title='Submenu',
-            width=WINDOW_SIZE[0] * 0.7
+            width=MainAoC.width
             )
 
-    def selectDay(day, day2):
-        MainAoC.selectedDay = day2
+    def selectDay(dayTuple, dayNr):
+        MainAoC.selectedDay = dayNr
 
     def start_the_game():
-        foundDat  = next((x for x in MainAoC.daysClasses if x.day == MainAoC.selectedDay), None)
+        foundDat  = next((x for x in MainAoC.daysToSelect if x.day == MainAoC.selectedDay), None)
         if (foundDat == None):
             print('not found')
         else:
             print(foundDat.codeName)
             foundDat.run()
         pass
-
-
 
 def main():
     MainAoC.initGame()

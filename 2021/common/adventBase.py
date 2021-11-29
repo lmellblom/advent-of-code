@@ -1,12 +1,10 @@
 import os
-import inspect
-
 
 class AdventBase():
-
-    def __init__(self, codeName: str, day: int):
+    def __init__(self, codeName: str, day: int, basepath =__file__):
         self.codeName = codeName
         self.day = day
+        self.basepath = basepath
 
     def readInputFile(self):
         return self.__readFile('input.txt')
@@ -24,15 +22,16 @@ class AdventBase():
         self.first()
         self.second()
 
+    def __current_path(self):
+        pth, _ = os.path.split(os.path.abspath(self.basepath))
+        return pth
+
     def __readFile(self, fileName):
-        fileDir = os.path.dirname(os.path.realpath('__file__'))
-        print(fileDir)
+        dirname = self.__current_path()
+        filePath = os.path.join(dirname, fileName)
 
-        dirname = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
-        filename2 = os.path.join(dirname, fileName)
-        print(filename2)
+        f = open(filePath, "r")
 
-        f = open(fileName, "r")
         #loop trough the file line by line? store in string list
         rows = []
         for row in f:
