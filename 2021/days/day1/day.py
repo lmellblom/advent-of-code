@@ -15,7 +15,7 @@ class Day1(adventBase.AdventBase):
         return adventBase.Result(value)
 
     def __first(self, input: list):
-        intList = helpers.convertListToInt(input)
+        intList = helpers.convert_list_to_int(input)
         value = self.__countDepthIncreases(intList)
         return value
 
@@ -29,7 +29,7 @@ class Day1(adventBase.AdventBase):
         return adventBase.Result(value)
 
     def __second(self, input: list):
-        intList = helpers.convertListToInt(input)
+        intList = helpers.convert_list_to_int(input)
         slidingWindow = self.__createSlidingWindow(intList)
         value = self.__countDepthIncreases(slidingWindow)
         return value

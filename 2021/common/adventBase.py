@@ -13,8 +13,8 @@ class TestResult():
         self.value = value
 
 class AdventBase(ABC):
-    def __init__(self, codeName: str, day: int, basepath =__file__):
-        self.codeName = codeName
+    def __init__(self, code_name: str, day: int, basepath =__file__):
+        self.code_name = code_name
         self.day = day
         self.basepath = basepath
 
@@ -36,30 +36,30 @@ class AdventBase(ABC):
 
     def run(self):
         print('-----------')
-        print('--', self.codeName , '--')
+        print('--', self.code_name , '--')
         print('-----------')
-        testInput = self.__readTestFile()
-        input = self.__readInputFile()
+        testInput = self.__read_test_file()
+        input = self.__read_input_file()
 
         testResult1 = self.test(testInput)
         if (testResult1.succeded):
             result1 = self.first(input)
-            self.writeResultMessage('Part1', result1)
+            self.write_result_message('Part1', result1)
         else:
-            self.writeTestResultMessage('Test1', testResult1)
+            self.write_test_result_message('Test1', testResult1)
 
         testResult2 = self.test2(testInput)
         if (testResult2.succeded):
             result2 = self.second(input)
-            self.writeResultMessage('Part2', result2)
+            self.write_result_message('Part2', result2)
         else:
-            self.writeTestResultMessage('Test2', testResult2)
+            self.write_test_result_message('Test2', testResult2)
         
-    def writeResultMessage(self, message: str, result: Result):
+    def write_result_message(self, message: str, result: Result):
         if (result is not None): 
             print(message, ' answer :', result.value)
 
-    def writeTestResultMessage(self, message: str, result: TestResult): 
+    def write_test_result_message(self, message: str, result: TestResult): 
         if (result is not None): 
             if result.succeded:
                 print(message, ' succeded!')
@@ -69,17 +69,17 @@ class AdventBase(ABC):
                 print('Expected: ', result.expected)
                 pass
 
-    def __readInputFile(self):
-        return self.__readFile('input.txt')
+    def __read_input_file(self):
+        return self.__read_file('input.txt')
 
-    def __readTestFile(self):
-        return self.__readFile('input_test.txt')
+    def __read_test_file(self):
+        return self.__read_file('input_test.txt')
 
     def __current_path(self):
         pth, _ = os.path.split(os.path.abspath(self.basepath))
         return pth
 
-    def __readFile(self, fileName):
+    def __read_file(self, fileName):
         dirname = self.__current_path()
         filePath = os.path.join(dirname, fileName)
 

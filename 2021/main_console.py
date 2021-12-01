@@ -4,22 +4,22 @@ from common.adventBase import AdventBase
 from days.day1.day import Day1
 
 # main functions
-def getDaysList():
+def get_days_list():
     days: list[AdventBase] = []
     days.append(Day1())
     return days
 
 def run():
-    days = getDaysList()
-    currentDay = datetime.now().day
-    dayIndex = currentDay - 1
+    days = get_days_list()
+    current_day = datetime.now().day
+    day_index = current_day - 1
 
-    if (dayIndex >= len(days)):
+    if (day_index >= len(days)):
         print('Day not implemented')
         return
     
-    dayToRun = days[dayIndex]
-    dayToRun.run()
+    day_to_run = days[day_index]
+    day_to_run.run()
 
 # run the main function only if this module is executed as the main script
 # (if you import this as a module then nothing is executed)
