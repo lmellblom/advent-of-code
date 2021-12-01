@@ -29,7 +29,7 @@ class MainAoC:
 
         days = []
         for x in MainAoC.days_to_select:
-            obj = (x.codeName, x.day)
+            obj = (x.code_name, x.day)
             days.append(obj)
 
         menu.add.selector('Välj problem :', days, onchange=MainAoC.select_day)
@@ -55,7 +55,7 @@ class MainAoC:
         if (found_day == None):
             print('not found')
         else:
-            print(found_day.codeName)
+            print(found_day.code_name)
             found_day.run()
         pass
 
