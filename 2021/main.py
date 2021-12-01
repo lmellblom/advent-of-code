@@ -1,6 +1,8 @@
 import pygame
 import pygame_menu
 
+from datetime import datetime
+
 from common.adventBase import AdventBase
 from days.day1.day import Day1
 
@@ -12,7 +14,7 @@ def getDaysList():
 
 class MainAoC:
     daysToSelect = []
-    selectedDay = 1
+    selectedDay = datetime.now().day
     height = 400
     width = 700
 
@@ -65,5 +67,3 @@ def main():
 if __name__=="__main__":
     # call the main function
     main()
-
-
