@@ -2,11 +2,13 @@ from datetime import datetime
 
 from common.adventBase import AdventBase
 from days.day1.day import Day1
+from days.day2.day import Day2
 
 # main functions
 def get_days_list():
     days: list[AdventBase] = []
     days.append(Day1())
+    days.append(Day2())
     return days
 
 def run():

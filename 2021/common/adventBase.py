@@ -35,9 +35,12 @@ class AdventBase(ABC):
          return TestResult('-', '')
 
     def run(self):
-        print('-----------')
-        print('--', self.code_name , '--')
-        print('-----------')
+        length = 20
+        lines = '-'.center(length, '-')
+        title = self.code_name.center(length)
+        print(lines)
+        print(title)
+        print(lines)
         testInput = self.__read_test_file()
         input = self.__read_input_file()
 
@@ -47,6 +50,8 @@ class AdventBase(ABC):
             self.write_result_message('Part1', result1)
         else:
             self.write_test_result_message('Test1', testResult1)
+
+        print(lines)
 
         testResult2 = self.test2(testInput)
         if (testResult2.succeded):
@@ -65,8 +70,8 @@ class AdventBase(ABC):
                 print(message, ' succeded!')
             else:
                 print(message, ' failed :/')
-                print('Value: ', result.value)
-                print('Expected: ', result.expected)
+                print('Value'.ljust(10), ':', result.value)
+                print('Expected'.ljust(10), ':',result.expected)
                 pass
 
     def __read_input_file(self):
