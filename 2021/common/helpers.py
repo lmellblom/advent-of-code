@@ -17,3 +17,9 @@ def transpose(input: list[str]) -> list[str]:
 
 def join_tuple_string(strings_tuple) -> str:
    return ''.join(strings_tuple)
+
+def get_str_at_index(input: list[str], index: int) -> str:
+    new_str = ''
+    for item in input:
+        new_str += item[index]
+    return new_str

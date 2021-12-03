@@ -36,20 +36,21 @@ class Day3(adventBase.AdventBase):
         # kunde inte hitta något bättre...
         epsilon_str = ''.join(['1' if i == '0' else '0' for i in gamma_str])
         epsilon = int(epsilon_str, 2)
-        
         return gamma * epsilon
 
     # --- Second ---
     def test2(self, input: list) -> adventBase.TestResult:
         value = self.__second(input)
-        return adventBase.TestResult(0, value)
+        return adventBase.TestResult(230, value)
 
     def second(self, input: list) -> adventBase.Result:
         value = self.__second(input)
         return adventBase.Result(value)
 
     def __second(self, input: list):
-        return None
+        ox = self.__find_rating(input, self.__oxygen)
+        co2 = self.__find_rating(input, self.__CO2_scrubber)
+        return ox * co2
 
     # -- Helpers --
     def __convert_input_to_gamma_str(self, input: list[str]) -> str:
@@ -67,3 +68,29 @@ class Day3(adventBase.AdventBase):
                 gamma_str += '1'
 
         return gamma_str
+
+    def __find_rating(self, input: list[str], rating_func):
+        bit_index = 0
+        while len(input) > 1:
+            new_str = helpers.get_str_at_index(input, bit_index)
+
+            strCount = len(new_str)
+            ones = helpers.hamming_weight(new_str)
+
+            filter_val = rating_func(strCount-ones, ones)
+            input = list(filter(lambda bit: bit[bit_index] == filter_val, input))
+
+            bit_index += 1
+        
+        item = input[0]
+        return int(item, 2)
+
+    def __oxygen(self, zeros, ones) -> str:
+        if (zeros > ones):
+            return '0'
+        return '1'
+    
+    def __CO2_scrubber(self, zeros, ones) -> str:
+        if (ones >= zeros):
+            return '0'
+        return '1'
