@@ -1,20 +1,6 @@
 from common import adventBase
 from common import helpers 
 
-class BitSum:
-    def __init__(self, zero: int, one: int) -> None:
-        self.zero = zero
-        self.one = one
-
-    def common(self) -> int:
-        if (self.zero > self.one):
-            return 0
-        return 1
-
-    def least_common(self) -> int:
-        if (self.one > self.zero):
-            return 1
-        return 0
 
 class Day3(adventBase.AdventBase):
     def __init__(self) -> None:
