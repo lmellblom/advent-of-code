@@ -4,6 +4,7 @@ from common.adventBase import AdventBase
 from days.day1.day import Day1
 from days.day2.day import Day2
 from days.day3.day import Day3
+from days.day4.day import Day4
 
 # main functions
 def get_days_list():
@@ -11,6 +12,7 @@ def get_days_list():
     days.append(Day1())
     days.append(Day2())
     days.append(Day3())
+    days.append(Day4())
     return days
 
 def run():
